@@ -1,0 +1,22 @@
+The goal of this analysis was to identify SNPs that are likely to disrupt or introduce new TFBS in humans.  To do this, we first used PWMscan (PWMScan: a fast tool for scanning entire genomes with a position-specific weight matrix | Bioinformatics | Oxford Academic (oup.com)) combined with the JASPAR 2022 meme formatted files to predict TFBS across the genomes of humans, chimpanzees, bonobos, gorillas, orangutans, and rhesus macaques. See Code/Find_TFBS for the details of reformatting and scanning.  We then wanted to associate them with human-chimpanzee SNPs.  We used the unfiltered SNPs (ie not filtered using WGS from humans/chimpanzees).  
+
+To do this, we used liftover.  But there is a problem, if a variant lifts to the chimpanzee genome and then back to the human genome, that does not guarantee it will have lifted to the same place in the human genome.  To deal with this, we lifted human SNPs to each species genome and then back, having given the human SNPs a unique ID containing their original position.  We then whitelisted any variants that lifted over successfully both times and lifted back to the correct original human position.  Any other SNPs were blacklisted.  We removed these blacklisted SNPs from the list of SNPs that were NHP-referenced from each species to create an NHP-referenced whitelist.  These whitelists are referenced to the NHP and are in the folder Liftover_WhiteBlackList_Output and have columns:
+Chromosome    pos1   pos2   HumanBase|ChimpBase     HumanPosition
+
+From there, we intersected the TFBS predictions from each species with the whitelisted human-chimpanzee SNPs that had been lifted over to the NHP genome.  We also intersected the human SNPs with the human TFBS.  For chimpanzee, we then reformatted and used linux join (joining on the column with the human position of the SNP) to create a combined file that now had the human and chimpanzee score.  For all other species, we stopped when we had the file that was ready to join and joined them in order to the human-chimpanzee file to create a list of binding strengths for each SNP: 
+Position Human Chimpanzee Bonobo Gorilla Orangutan RhesusMacaque
+This final file was gzipped and backed up in Fixed_HumChp_SNPs_Output.
+
+In the code, both template.sh and make_script.py were slightly altered based on which species was included.
+
+For the above joining process, we were careful to mark SNPs as one of three categories:
+If they had a predicted TFBS with score > 200 (the minimum for it to be reported), this number was reported.
+If they did not have a predicted TFBS AND that SNP was not in the blacklist for that species, we reported <200
+Finally, if they did not have a predicted TFBS but that SNP was in the blacklist, we reported <200 as this could be a bioinformatics related inaccuracy, a sequence that is not found in that other species, or some other third thing.
+
+To speed up the process of checking the blacklist, we removed SNPs that were also in the chimpanzee blacklist as these will never be in the TFBS prediction SNPs.  We used filter_blacklist.py to do this.
+
+Finally, we also wanted to do this for the polymorphic variants to facilitate testing for positive selection in various TFBS subsets of the genome.  To do this, we intersected the TFBS with the NoHLA list of non-coding variants with MAF > 0.1 and reformatted and uploaded it to Poly_SNPs_Output in this folder.  We used the same processing pipeline as above, substituting the script rearrange2.py to properly format them.  
+
+NOTE: For the polymorphic SNPs, there are no bonobo SNPs so the order is 
+Position human chimp gorilla orangutan rhesus
