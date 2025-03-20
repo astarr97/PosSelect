@@ -7,3 +7,6 @@ We then created a new directory ToIntersect, and then created cat_all_intersect.
 
 For two 10 megabase chunks on chrX, we needed to iteratively split them into smaller and smaller chunks until we found the 2 single bases that were causing an underflow error in phast v1.5
 I recommend using the newer code which automatically handles this, or using phast v1.7 which should have this underflow bug fixed.
+This newer code is available at: https://github.com/astarr97/ConvDist
+
+This newer code is also what was used to compute PhyloP for Mus musculus and Pteropus alecto
