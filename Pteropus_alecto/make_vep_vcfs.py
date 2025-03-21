@@ -1,0 +1,6 @@
+import sys
+
+### NEED TO KNOW WHAT THE REFERENCE ALLELE IS FIRST USING THE TSV STUFF ###
+
+file = sys.argv[1]
+
