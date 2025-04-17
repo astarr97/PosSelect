@@ -504,9 +504,9 @@ def remove_repeats(v, yvalls, path = "./"):
 def add_unfold(yvalls, path = "./"):
     #Unfolding the allele frequencies
     maf_base = pd.read_csv(path + "UnfoldPoly/HumPoly_NC_Final_CREs_NoHLA_LinkMAF_Base.txt", sep = "\t").drop_duplicates()
-    maf_base.index = maf_base["Position"] + ":" + maf_base["MAFMaxAcrossAncestry"].astype(str)
+    maf_base.index = maf_base["Position"] + ":" + maf_base["MAFMaxAcrossAncestry"].round(6).astype(str)
     maf_base = maf_base.drop(["Position", "MAFMaxAcrossAncestry"], axis = 1)
-    yvalls.index = yvalls["Position"] + ":" + yvalls["MAFMaxAcrossAncestry"].astype(str)
+    yvalls.index = yvalls["Position"] + ":" + yvalls["MAFMaxAcrossAncestry"].round(6).astype(str)
 
     #Again careful to only drop based on important columns
     yvalls = yvalls.join(maf_base).dropna(subset = ["SpecSup447", "PhyloP447", "Position", "NearestGene", "Human ref", "Human alt", "MAFMaxAcrossAncestry"])
