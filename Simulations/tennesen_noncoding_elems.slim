@@ -1,0 +1,282 @@
+// Keywords: migration, dispersal
+
+initialize() {
+
+	//adap = Analytical.parameters(N=1000,n=661,gam_neg=-457,Lf=2*10^5, B=0.999)
+	//mu = Analytical.set_theta_f(adap)
+	
+	// rescale and not, check 
+	defineConstant("N", 7310);
+	//Changed the numeric thing to 661 here to define sample size
+	defineConstant("S", 661);
+    defineConstant("fileName", nF);	
+    defineConstant("fullPath", "/home/groups/hbfraser/Common_Software/");
+	defineConstant("bn", (S*2)-1);
+	
+	// Command line arguments
+	defineConstant("wS", weakS); //Sets parameter for exponential distribution for moderately conserved sites
+	defineConstant("vlS", vlowS); //Sets mean parameter for low very conserved sites NEED TO ADJUST STDEV MANUALLY
+	defineConstant("vmS", vmedS); //Sets mean parameter for moderate very conserved sites NEED TO ADJUST STDEV MANUALLY
+	defineConstant("vhS", vhighS); //Sets mean parameter for high very conserved sites NEED TO ADJUST STDEV MANUALLY
+	// defineConstant("muBgs", bgsMutationRate); // 2Nes
+	
+	// Beneficial mutation rate
+	defineConstant("pB", pposBene);
+	defineConstant('length', asInteger(noncodLength));
+
+    // One homogenous mutation rate
+	rates = c(0.001/(4*N)); 
+	
+	// Only one element of length length
+	ends = c(length);
+
+
+	initializeMutationRate(rates, ends);	
+	initializeRecombinationRate(0.001/(4*N));	
+
+	// mutation types
+	initializeMutationType("m1", 0.5, "f", 0.0); // neutral, 0.8 proportion
+    
+    //This was done because the number of these sites that exist in real data is simply too high relative to what even pretty low selection coefficients produce in the simulation
+    //As a result we make these very close to neutral mostly
+    //Various strengths of selection on weakly conserved sites
+    initializeMutationType("m24", 0.5, "e", 4*wS/(2*N)); // beneficial, weakly conserved
+    initializeMutationType("m23", 0.5, "e", wS/(2*N)); // beneficial, weakly conserved
+    initializeMutationType("m22", 0.5, "e", wS/(20*N)); // beneficial, weakly conserved
+    initializeMutationType("m21", 0.5, "e", wS/(200*N)); // beneficial, weakly conserved
+    
+    //Conserved ones
+    initializeMutationType("m3", 0.5, "n", vlS/(2*N), vlS/(2*N*10)); // very conserved, low, beneficial
+    initializeMutationType("m4", 0.5, "n", vmS/(2*N), vmS/(2*N*10)); // very conserved, medium, beneficial
+    initializeMutationType("m5", 0.5, "n", vhS/(2*N), vhS/(2*N*10)); // very conserved, high, beneficial
+    
+    //Various strengths of selection on weakly conserved sites
+    initializeMutationType("m64", 0.5, "e", -4*wS/(2*N)); // beneficial, weakly conserved
+    initializeMutationType("m63", 0.5, "e", -wS/(2*N)); // beneficial, weakly conserved
+    initializeMutationType("m62", 0.5, "e", -wS/(20*N)); // beneficial, weakly conserved
+    initializeMutationType("m61", 0.5, "e", -wS/(100*N)); // beneficial, weakly conserved
+    
+    initializeMutationType("m7", 0.5, "n", -vlS/(2*N), vlS/(2*N*10)); // very conserved, low, beneficial
+    initializeMutationType("m8", 0.5, "n", -vmS/(2*N), vmS/(2*N*10)); // very conserved, medium, beneficial
+    initializeMutationType("m9", 0.5, "n", -vhS/(2*N), vhS/(2*N*10)); // very conserved, high, beneficial
+    
+    // Computed these in jupyter notebook, see for details
+    // Lower beneficial mutation rate for more conserved sites
+    // defineConstant(delProp, 0.79 + 0.18*pB + 0.007*pB + 0.0115*pB/2 + 0.0115*pB/4);
+    
+    // Cut the values for the conservedish sites in half and say they are broadly distributed conserved sites
+	// initializeGenomicElementType("g1", c(m1,m2,m3,m4,m5,m6,m7,m8,m9), c(0.8,0.18*pB,0.0025*pB, 0.004*pB/2, 0.00035*pB/4, 0.18*(1-pB), 0.0025*(1-pB), 0.004*(1-(pB/2)), 0.0035*(1-(pB/4)))); 
+	initializeGenomicElementType("g1", c(m1,m21,m22,m23,m24,m3,m4,m5,m61,m62,m63,m64,m7,m8,m9), c(0.8,0.11*pB,0.04*pB,0.02/2*pB,0.01/2*pB,0.005*pB, 0.008*pB/2, 0.007*pB/4, 0.11*(1-pB), 0.04*(1-pB), 0.02*(1-pB), 0.01*(1-pB), 0.005*(1-pB), 0.008*(1-(pB/2)), 0.007*(1-(pB/4)))); 
+
+	// Create individual conserved elements
+	initializeGenomicElementType("g2", c(m1,m21,m22,m23,m24,m3,m4,m5,m61,m62,m63,m64,m7,m8,m9), c(0.25,0.11*pB,0.16*pB,0.14*pB,0.09*pB,0.005*pB, 0.008*pB/2, 0.007*pB/4, 0.11*(1-pB), 0.04*(1-pB), 0.02*(1-pB), 0.01*(1-pB), 0.005*(1-pB), 0.008*(1-(pB/2)), 0.007*(1-(pB/4)))); 
+
+	//initializeGenomicElementType("g2", c(m1,m2,m3,m4,m5,m6,m7,m8,m9), c(0.25,0.5*pB,0.0625*pB, 0.1*pB/2, 0.0875*pB/4, 0.5*(1-pB), 0.0625*(1-pB), 0.1*(1-(pB/2)), 0.0875*(1-(pB/4))));
+	
+	g1.color="black";
+
+	// Generate gene structure
+	base = 0;
+    
+    // based on the above values, we need 1/50th of the total genomic real estate to be of type g2
+	// make a general non-coding region
+	// Hard coding in length of 63000 bases on either end
+	initializeGenomicElement(g1, base, base + 63000-1);
+	
+	defineConstant("ElemLength", 500);
+	defineConstant("ElemGap", 10000);
+	
+	// make a conserved non-coding region alternating every 10 kb 500 bp in length
+	initializeGenomicElement(g2, base + 63000, base + 63000 + ElemLength-1);
+	initializeGenomicElement(g1, base + 63000 + ElemLength, base + 63000 + ElemLength + ElemGap-1);
+	initializeGenomicElement(g2, base + 63000 + ElemLength + ElemGap, base + 63000 + ElemLength + ElemGap + ElemLength-1);
+	initializeGenomicElement(g1, base + 63000 + ElemLength + ElemGap + ElemLength, base + 63000 + ElemLength + ElemGap + ElemLength + ElemGap-1);
+    initializeGenomicElement(g2, base + 63000 + ElemLength + ElemGap + ElemLength + ElemGap, base + 63000 + ElemLength + ElemGap + ElemLength + ElemGap + ElemLength-1);
+    initializeGenomicElement(g1, base + 63000 + ElemLength + ElemGap + ElemLength + ElemGap + ElemLength, base + 63000 + ElemLength + ElemGap + ElemLength + ElemGap + ElemLength + ElemGap-1);
+    initializeGenomicElement(g2, base + 63000 + ElemLength + ElemGap + ElemLength + ElemGap + ElemLength + ElemGap, base + 63000 + ElemLength + ElemGap + ElemLength + ElemGap + ElemLength + ElemGap + ElemLength-1);
+    initializeGenomicElement(g1, base + 63000 + ElemLength + ElemGap + ElemLength + ElemGap + ElemLength + ElemGap + ElemLength, base + 63000 + ElemLength + ElemGap + ElemLength + ElemGap + ElemLength + ElemGap + ElemLength + ElemGap-1);
+    initializeGenomicElement(g2, base + 63000 + ElemLength + ElemGap + ElemLength + ElemGap + ElemLength + ElemGap + ElemLength + ElemGap, base + 63000 + ElemLength + ElemGap + ElemLength + ElemGap + ElemLength + ElemGap + ElemLength + ElemGap + ElemLength-1);
+    initializeGenomicElement(g1, base + 63000 + ElemLength + ElemGap + ElemLength + ElemGap + ElemLength + ElemGap + ElemLength + ElemGap + ElemLength, base + 63000 + ElemLength + ElemGap + ElemLength + ElemGap + ElemLength + ElemGap + ElemLength + ElemGap + ElemLength + ElemGap-1);
+    initializeGenomicElement(g2, base + 63000 + ElemLength + ElemGap + ElemLength + ElemGap + ElemLength + ElemGap + ElemLength + ElemGap + ElemLength + ElemGap, base + 63000 + ElemLength + ElemGap + ElemLength + ElemGap + ElemLength + ElemGap + ElemLength + ElemGap + ElemLength + ElemGap + ElemLength-1);
+    initializeGenomicElement(g1, base + 63000 + ElemLength + ElemGap + ElemLength + ElemGap + ElemLength + ElemGap + ElemLength + ElemGap + ElemLength + ElemGap + ElemLength, base + 63000 + ElemLength + ElemGap + ElemLength + ElemGap + ElemLength + ElemGap + ElemLength + ElemGap + ElemLength + ElemGap + ElemLength + ElemGap-1);
+    initializeGenomicElement(g2, base + 63000 + ElemLength + ElemGap + ElemLength + ElemGap + ElemLength + ElemGap + ElemLength + ElemGap + ElemLength + ElemGap + ElemLength + ElemGap, base + 63000 + ElemLength + ElemGap + ElemLength + ElemGap + ElemLength + ElemGap + ElemLength + ElemGap + ElemLength + ElemGap + ElemLength + ElemGap + ElemLength-1);
+    initializeGenomicElement(g1, base + 63000 + ElemLength + ElemGap + ElemLength + ElemGap + ElemLength + ElemGap + ElemLength + ElemGap + ElemLength + ElemGap + ElemLength + ElemGap + ElemLength, base + 63000 + ElemLength + ElemGap + ElemLength + ElemGap + ElemLength + ElemGap + ElemLength + ElemGap + ElemLength + ElemGap + ElemLength + ElemGap + ElemLength + ElemGap-1);
+    initializeGenomicElement(g2, base + 63000 + ElemLength + ElemGap + ElemLength + ElemGap + ElemLength + ElemGap + ElemLength + ElemGap + ElemLength + ElemGap + ElemLength + ElemGap + ElemLength + ElemGap, base + 63000 + ElemLength + ElemGap + ElemLength + ElemGap + ElemLength + ElemGap + ElemLength + ElemGap + ElemLength + ElemGap + ElemLength + ElemGap + ElemLength + ElemGap + ElemLength-1);
+
+	//Fill out to 200 kb
+	initializeGenomicElement(g1, base + 63000 + ElemLength + ElemGap + ElemLength + ElemGap + ElemLength + ElemGap + ElemLength + ElemGap + ElemLength + ElemGap + ElemLength + ElemGap + ElemLength + ElemGap + ElemLength, base + 63000 + ElemLength + ElemGap + ElemLength + ElemGap + ElemLength + ElemGap + ElemLength + ElemGap + ElemLength + ElemGap + ElemLength + ElemGap + ElemLength + ElemGap + ElemLength + 63000-1);
+
+	
+	//
+
+}
+
+// Create the ancestral African population
+1 early() { 
+	sim.addSubpop("p1", N); 
+}
+
+// Expand the African population to 14474
+// This occurs 148000 years (5920) generations ago
+// 52080 { 5.5
+214080 early() { 
+	p1.setSubpopulationSize(14474); 
+}
+
+// Split non-Africans from Africans and set up migration between them
+// Thi1s occurs 51000 years (2040 generations) ago
+217960 early() {
+	sim.addSubpopSplit("p2", 1861, p1);
+	p1.setMigrationRates(c(p2), c(15e-5));
+	p2.setMigrationRates(c(p1), c(15e-5));
+}
+
+// Second european bottleneck and population growth
+// This occurs 23000 years (920 generations) ago
+219080 early() {
+	p2.setSubpopulationSize(1032);  // reduce European size
+	// Set migration rates for the rest of the simulation recascaled from 2.5e-5
+	p1.setMigrationRates(c(p2), c(2.5e-5));
+	p2.setMigrationRates(c(p1), c(2.5e-5));
+}
+
+// Set up exponential growth
+// Where N(0) is the base subpopulation size and t = gen - 57080:
+// N(Europe) should be int(round(N(0) * e^(0.0038*t)))
+// 57080:57795 {
+219080:219795 early() {
+
+	// t = sim.generation - 57080;
+	// edited to cycle based on slim4
+	t = sim.cycle - 219080;
+	//exp rescaled from 0.00307
+	p2_size = round(1030 * exp(0.00307 * t));
+	p2.setSubpopulationSize(asInteger(p2_size));
+
+
+}
+
+// Second exponential growth
+// 57795:58000 {
+219795:220000 early() {
+    
+    // edited to cycle based on slim4
+	t = sim.cycle - 219795;
+	//exp rescaled from 0.0166; 0.0195
+	p1_size = round(14474 * exp(0.0166 * t));
+	p2_size = round(9390 * exp(0.0195 * t));
+
+	p1.setSubpopulationSize(asInteger(p1_size));	
+	p2.setSubpopulationSize(asInteger(p2_size));
+}
+
+
+
+// Generation 22000 is the present. Output and terminate. 
+//22000 rescaled from 220000; 220000*25 = 5.5Myears, approx split from chimpancee 
+// 58000 late() {
+220000 late() {
+	
+	
+	// Sample individuals
+	sampledIndividuals = p1.sampleIndividuals(S).genomes;  
+	//sampledIndividuals.outputMS("/home/groups/hbfraser/Common_Software/ms_test_noncoding.txt");
+	//m1muts = sim.mutationsOfType(m1);
+	//m1_in_p2 = (sim.mutationCounts(sampledIndividuals, m1muts) > 0);
+
+	// Segregating sites within the sample. 
+	m = unique(sampledIndividuals.mutations);
+
+	// m0 = unique(sampledIndividuals.mutationsOfType(m2));
+	// mf3 = unique(sampledIndividuals.mutationsOfType(m3));
+	// mf4 = unique(sampledIndividuals.mutationsOfType(m4));
+	// mf5 = unique(sampledIndividuals.mutationsOfType(m5));
+	// mi  = c(mf3,mf4,mf5);
+
+	// if( sum(m0.size()) == 0){
+	//	p0 = rep(0,bn);
+	// }else{
+		// Get frequencies and cleaning fixed within sample
+	//	f0 = sapply(m0, "mean(sampledIndividuals.containsMutations(applyValue));");
+	//	p0  = sapply(0:(bn), " sum((f0 >= applyValue / (bn)) & (f0 < (applyValue + 1) / (bn))); ");
+	// }
+ 	
+	// if(sum(mi.size()) == 0){
+	//	pi = rep(0,bn);
+	// }else{
+	//	fi = sapply(mi, "mean(sampledIndividuals.containsMutations(applyValue));");				
+		// 	Make binned SFS
+	//	pi  = sapply(0:(bn), " sum((fi >= applyValue / (bn)) & (fi < (applyValue + 1) / (bn))); ");
+	// }
+
+	// if (sum(mf5.size()) == 0){
+	//	pw = rep(0,bn);
+	// }else{
+	//	fw = sapply(mf5, "mean(sampledIndividuals.containsMutations(applyValue));");
+	//	pw  = sapply(0:((bn)-1), " sum((fw >= applyValue / (bn)) & (fw < (applyValue + 1) / (bn))); ");
+	// }
+
+
+   	// Get substitution info
+   	// Write out the information on the fixed sites
+	subs = sim.substitutions;
+	writeFile(fullPath + "SubCoeffsElem200kb/" + fileName + "_FixedSites.txt", "Fixed: " + paste(sim.substitutions.selectionCoeff), compress=F);
+	// m1Subs = subs[subs.mutationType == m1];
+	// Coding locus
+	// m2Subs = subs[subs.mutationType == m2];
+	// m3Subs = subs[subs.mutationType == m3];
+	// m4Subs = subs[subs.mutationType == m4];
+	// m5Subs = subs[subs.mutationType == m5];
+
+	// trueAlpha = (m4Subs.size() + m5Subs.size()) / (m4Subs.size() + m5Subs.size() + m3Subs.size());
+	// trueAlphaW =  (m5Subs.size()) / (m5Subs.size() + m4Subs.size() + m3Subs.size());
+	// trueAlphaS = (m4Subs.size()) / (m5Subs.size() + m4Subs.size() + m3Subs.size());
+
+	// di = m5Subs.size() + m4Subs.size() + m3Subs.size();
+	// dw = m5Subs.size();
+	// d0 = m2Subs.size();
+	// ds = m4Subs.size();
+
+	// if(isNAN(trueAlphaW)){
+	// 	trueAlphaW = "NA";
+	// }
+	// if(isNAN(trueAlphaS)){
+	//	trueAlphaS = "NA";
+	// }
+	// if(isNAN(trueAlpha)){
+	//	trueAlpha = "NA";
+	// }
+	
+	// f = (1:(bn)) / (bn);
+	// line = "daf\tpi\tp0\tpw";
+	// writeFile( fullPath + "/dafElem200kb/daf" + fileName +  ".tsv.gz", line, compress=T);
+	//catn("daf\tpi\tp0\tpw");
+	// for (i in 0:(bn-1)){
+	// 	line = f[i] + "\t" + pi[i] + "\t" + p0[i] + "\t" + pw[i];
+	//	writeFile(fullPath + "/dafElem200kb/daf" + fileName +  ".tsv.gz", line,append=T, compress=T);
+		//catn( f[i] + "\t" + pi[i] + "\t" + p0[i] + "\t" + pw[i]);
+	// }
+
+	// line  = "di\td0\tdw\tds";
+	// writeFile(fullPath + "/divElem200kb/div" + fileName +  ".tsv.gz",line, compress=T); 
+	// line  = di + "\t" + d0 + "\t" + dw + "\t" + ds;
+	// writeFile(fullPath + "/divElem200kb/div" + fileName +  ".tsv.gz", line,append=T ,compress=T);
+
+	
+	// line = "trueAlphaW\ttrueAlphaS\ttrueAlpha";
+	// writeFile(fullPath + "/divElem200kb/alpha" + fileName +  ".tsv.gz", line ,compress=T);
+	// line = trueAlphaW + "\t" +  trueAlphaS + "\t" + trueAlpha;
+	// writeFile(fullPath + "/divElem200kb/alpha" + fileName +  ".tsv.gz", line,append=T ,compress=T);
+
+
+	//catn("di\td0\tdw\tds");
+	//catn(di + "\t" + d0 + "\t" + dw + "\t" + ds);
+	
+	//catn("trueAlphaW" + "\t" + "trueAlphaS" + "\t" + "trueAlpha");
+	//catn(trueAlphaW + "\t" +  trueAlphaS + "\t" + trueAlpha);
+	
+	sampledIndividuals.outputVCF(filePath='/home/groups/hbfraser/Common_Software/vcfsElem200kb/' + fileName + '.vcf'); // AFR ancestry phase 3 sample of size 661
+
+}
+
+
