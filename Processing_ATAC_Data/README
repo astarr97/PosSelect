@@ -1,1 +1,3 @@
 This directory contains all the code used to process the ATAC data used to train ChromBPNet models
+
+The Snakefile was used to process the data for AdultCorticalMicroglia, FetalChondrocytes, and FetalCorticalNeuronProgenitor in conjunction with the config files and scripts present in each of those directors.
