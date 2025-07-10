@@ -1,0 +1,9 @@
+{
+  "__default__" :
+  {
+    "SCRIPTS_PATH" : "/scratch/users/astarr97/scripts",
+    "DATA_DIR" : "/scratch/users/astarr97/Chondrocytes",
+    "SET_NAME" : "Chondrocytes_Attribute.txt",
+    "RUN_ID" : "Blah",
+    "OVERHANG" : "150",
+  } }
