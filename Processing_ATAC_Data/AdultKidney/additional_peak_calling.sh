@@ -1,0 +1,1 @@
+macs2 callpeak -t Loop_of_Henle.fragments.sort.tsv.gz -f BEDPE -g hs --nomodel --shift 100 --ext 200 -p 0.01 --keep-dup all -n Loop_of_Henle
