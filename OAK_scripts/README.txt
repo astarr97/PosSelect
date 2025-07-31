@@ -31,3 +31,5 @@ python get_tf_data.py abs_logfc 0 0.25 MA0052.4,MA0512.2,MA1643.1,MA0785.1,MA050
 where the second argument is the species support cutoff, the third is the symmetric minor allele frequency cutoff, the fourth is a list of JASPAR TFBS IDs, the fifth is the cutoff for the TBFS "score", and the last is the deep learning cell type cutoff
 
 pull_background_cts.py, which was used to pull all sites that meet the criteria to be included in the search for RAGs and RALs
+
+All other files are old and were not used
