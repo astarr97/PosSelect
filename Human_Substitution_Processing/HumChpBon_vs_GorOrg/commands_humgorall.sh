@@ -1,0 +1,30 @@
+python bed_to_vep_OG_NotHBC.py GorOrg_NotHBC_NonOverlap.bed
+python bed_to_vep_HBC_OG.py HumChpBon_GorOrg_SNPs.bed
+
+#Uploaded to VEP and did the usual thing with V109
+
+python filter_vep.py
+
+python process_ensembl_HBC_OG.py
+python process_ensembl_NotHBC.py
+
+python consolidate_HBC_OG_OrNotHBC.py All_Summarized_ChpDer.txt
+python consolidate_HBC_OG_OrNotHBC.py All_Summarized_BonDer.txt
+
+sort -k1,1 All_Summarized_HBC_OGConsol.txt > All_Summarized_HBC_OGConsol_Sorted.txt
+sort -k1,1 All_Summarized_NotHBC_NonoverlapConsol.txt > All_Summarized_NotHBC_NonoverlapConsol_Sorted.txt
+
+python process_cons_HBC_OG.py HumChpBon_GorOrg_SNPs_P100_P30_C100_C30_P241_P470_C470.bed
+python process_cons_HBC_OG.py GorOrg_NotHBC_NonOverlap_P100_P30_C100_C30_P241_P470_C470.bed
+
+sort -k1,1 HumChpBon_GorOrg_SNPs_P100_P30_C100_C30_P241_P470_C470_Sum.bed > HumChpBon_GorOrg_SNPs_P100_P30_C100_C30_P241_P470_C470_Sum_Sorted.bed
+sort -k1,1 GorOrg_NotHBC_NonOverlap_P100_P30_C100_C30_P241_P470_C470_Sum.bed > GorOrg_NotHBC_NonOverlap_P100_P30_C100_C30_P241_P470_C470_Sum_Sorted.bed
+
+join HumChpBon_GorOrg_SNPs_P100_P30_C100_C30_P241_P470_C470_Sum_Sorted.bed All_Summarized_HBC_OG_Consol_Sorted.txt > HBC_OG_Cons_VEP.txt
+join GorOrg_NotHBC_NonOverlap_P100_P30_C100_C30_P241_P470_C470_Sum_Sorted.bed All_Summarized_NotHBC_NonoverlapConsol_Sorted.txt > GorOrg_NotHBC_NonOverlap_Cons_VEP.txt
+
+sort -k1,1 HBC_GO_SNPs_AnnoAll_Final.bed > HBC_GO_SNPs_AnnoAll_Final_Sorted.bed 
+sort -k1,1 GO_NotHBC_NonOverlap_SNPs_AnnoAll_Final.bed > GO_NotHBC_NonOverlap_SNPs_AnnoAll_Final_Sorted.bed
+
+join HBC_OG_Cons_VEP.txt HBC_GO_SNPs_AnnoAll_Final_Sorted.bed > HBC_GO_SNPs_Cons_VEP_NearestGene.txt
+join GorOrg_NotHBC_NonOverlap_Cons_VEP.txt GO_NotHBC_NonOverlap_SNPs_AnnoAll_Final_Sorted.bed > GorOrg_NotHBC_NonOverlap_Cons_VEP_NearestGene.txt

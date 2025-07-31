@@ -1,0 +1,36 @@
+python back_to_bed.py Chimpanzee_Derived_Variants.txt
+python back_to_bed.py Bonobo_Derived_Variants.txt
+python bed_to_vep_bd.py Bonobo_Derived_Variants.bed
+python bed_to_vep_cd.py Chimpanzee_Derived_Variants.bed
+
+#Uploaded to VEP and did the usual thing with V109
+
+python filter_vep.py
+
+python process_ensembl_ChpDer.py
+python process_ensembl_BonDer.py
+
+python consolidate_ChpOrBonDer.py All_Summarized_ChpDer.txt
+python consolidate_ChpOrBonDer.py All_Summarized_BonDer.txt
+
+sort -k1,1 All_Summarized_ChpDerConsol.txt > All_Summarized_ChpDerConsol_Sorted.txt
+sort -k1,1 All_Summarized_BonDerConsol.txt > All_Summarized_BonDerConsol_Sorted.txt
+
+python process_cons_chpbon.py Bonobo_Derived_Variants_P100_P30_C100_C30_P241_P470_C470.bed
+python process_cons_chpbon.py Chimpanzee_Derived_Variants_P100_P30_C100_C30_P241_P470_C470.bed
+
+sort -k1,1 Bonobo_Derived_Variants_P100_P30_C100_C30_P241_P470_C470_Sum.bed > Bonobo_Derived_Variants_P100_P30_C100_C30_P241_P470_C470_Sum_Sorted.bed
+sort -k1,1 Chimpanzee_Derived_Variants_P100_P30_C100_C30_P241_P470_C470_Sum.bed > Chimpanzee_Derived_Variants_P100_P30_C100_C30_P241_P470_C470_Sum_Sorted.bed
+
+join Bonobo_Derived_Variants_P100_P30_C100_C30_P241_P470_C470_Sum_Sorted.bed All_Summarized_BonDerConsol_Sorted.txt > Bonobo_Derived_Cons_VEP.txt
+join Chimpanzee_Derived_Variants_P100_P30_C100_C30_P241_P470_C470_Sum_Sorted.bed All_Summarized_ChpDerConsol_Sorted.txt > Chimpanzee_Derived_Cons_VEP.txt
+
+sort -k1,1 BonDer_SNPs_AnnoAll_Final.bed > BonDer_SNPs_AnnoAll_Final_Sorted.bed
+sort -k1,1 ChpDer_SNPs_AnnoAll_Final.bed > ChpDer_SNPs_AnnoAll_Final_Sorted.bed
+
+join Bonobo_Derived_Cons_VEP.txt BonDer_SNPs_AnnoAll_Final_Sorted.bed > Bonobo_Derived_Cons_VEP_NearestGene.txt
+join Chimpanzee_Derived_Cons_VEP.txt ChpDer_SNPs_AnnoAll_Final_Sorted.bed > Chimpanzee_Derived_Cons_VEP_NearestGene.txt
+
+rclone copy BonDer_SNPs_AnnoAll_Final_Sorted.bed fraser:astarr/PosSelect_AccelEvol/Bonobo_Chimp_Specific
+rclone copy ChpDer_SNPs_AnnoAll_Final_Sorted.bed fraser:astarr/PosSelect_AccelEvol/Bonobo_Chimp_Specific
+
