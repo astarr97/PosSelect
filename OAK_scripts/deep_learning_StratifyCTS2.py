@@ -32,7 +32,6 @@ spec_sup = int(sys.argv[4])
 dl_path = "/oak/stanford/groups/hbfraser/astarr/ForMikeChromBPNet/Variants_Grouped/"
 print(dl_prefix, tau, group, spec_sup)
 
-#Decide which CTS metric to use
 if tau:
     cts_metric = "Tau"
 else:
@@ -41,9 +40,15 @@ else:
 if dl_prefix not in os.listdir("StratifyCTS_New"):
     os.mkdir("StratifyCTS_New/" + dl_prefix)
 
-out = open("StratifyCTS_New/" + dl_prefix + "/StratifyCTS_FilterNewTEs_" + cts_metric + "_" + "Group" + str(group) + "_" + "SpecSup" + str(spec_sup) + "_" + dl_prefix + ".txt", 'w')
+out = open("StratifyCTS_New/" + dl_prefix + "/StratifyCTS_FilterNewTEs_RemTopCT_" + cts_metric + "_" + "Group" + str(group) + "_" + "SpecSup" + str(spec_sup) + "_" + dl_prefix + ".txt", 'w')
 out.write("CTS_Cutoff\tMetric\tCutNum\tMedian fixed accessibility\tMedian fixed absolute log fold-change\tNumber fixed variants\tMedian polymorphic accessibility\tMedian polymorphic absolute log fold-change\tNumber polymorphic variants\tFisher exact p-value\tMWU p-value\tFisher exact p-value; alt greater\tMWU p-value; alt greater\talpha\tCutoff\t[[dc1, du1], [pc1, pu1]]\t[[dc2, du2], [pc2, pu2]]\tProportion\tTop_20th\tIteration\tTypeOfSampling\tEffectOrTotal\n")
 
+
+def shuffle_fp(vvv):
+    shuffle = vvv.copy()
+    shuffled = list(shuffle["FixedOrPoly"].sample(frac = 1, replace = False))
+    shuffle["FixedOrPoly"] = shuffled
+    return shuffle
 
 v, yvalls = read_noncoding_data_fast(path = "./", maf_cut = 0.25, spec_sup = spec_sup)
 
@@ -62,7 +67,9 @@ dl_poly = dl_poly[dl_poly["logfc"] != "logfc"]
 dl_poly["abs logfc"] = np.abs(dl_poly["logfc"].astype(float))
 yvalls.index = yvalls["Position"]
 
-#Cutoff for Top 20th percentile of accessibility, not used
+#v, yvalls = remove_pseudos(v, yvalls)
+#v, yvalls = remove_repeats(v, yvalls)
+
 fixed_to_cut = pd.DataFrame(np.max(dl_fixed[["allele1_pred_counts", "allele2_pred_counts"]].astype(float), axis = 1)).sort_values(0)
 poly_to_cut = pd.DataFrame(np.max(dl_poly[["allele1_pred_counts", "allele2_pred_counts"]].astype(float), axis = 1)).sort_values(0)
 
@@ -75,16 +82,14 @@ v = v.join(dl_fixed).dropna()
 yvalls = yvalls.join(dl_poly).dropna()
 yvalls = yvalls.drop_duplicates("Position")
 v = v.drop_duplicates("Position")
-
-#Read in cell type-specificity data
 if tau:
     cts_metric = "Tau"
     if group == 1:
-        cts_fixed = pd.read_csv(dl_path + "Taus_HumanDerived_Group1_WithNeuron.txt", sep = "\t").set_index("Position")
-        cts_poly = pd.read_csv(dl_path + "Taus_Polymorphic_Group1_WithNeuron.txt", sep = "\t").set_index("Position")
+        cts_fixed = pd.read_csv(dl_path + "Taus_HumanDerived_Group1_NoLiangSteinNeuron.txt", sep = "\t").set_index("Position")
+        cts_poly = pd.read_csv(dl_path + "Taus_Polymorphic_Group1_NoLiangSteinNeuron.txt", sep = "\t").set_index("Position")
     elif group == 2:
-        cts_fixed = pd.read_csv(dl_path + "Taus_HumanDerived_Group2_WithNeuron.txt", sep = "\t").set_index("Position")
-        cts_poly = pd.read_csv(dl_path + "Taus_Polymorphic_Group2_WithNeuron.txt", sep = "\t").set_index("Position")
+        cts_fixed = pd.read_csv(dl_path + "Taus_HumanDerived_Group2_NopreGC_IIa.txt", sep = "\t").set_index("Position")
+        cts_poly = pd.read_csv(dl_path + "Taus_Polymorphic_Group2_NopreGC_IIa.txt", sep = "\t").set_index("Position")
     cts_fixed["Mean_CTS"] = np.mean(cts_fixed[["Tau_Allele1", "Tau_Allele2"]], axis = 1)
     cts_poly["Mean_CTS"] = np.mean(cts_poly[["Tau_Allele1", "Tau_Allele2"]], axis = 1)
     cts_fixed = cts_fixed[["Mean_CTS", "Tau_abs_logfc"]]
@@ -103,7 +108,7 @@ else:
     cts_poly.columns = ["Mean_CTS", "Mean_CTS_Effect"]
 print(dl_prefix)
 
-#Join
+
 v = v.join(cts_fixed).dropna().drop_duplicates("Position")
 yvalls = yvalls.join(cts_poly).dropna().drop_duplicates("Position")
 print(v)
@@ -115,6 +120,11 @@ yvalls_alt = yvalls[yvalls["Human alt"] == yvalls["Chimp ref"]]
 yvalls_ref["fixed logfc"] = -yvalls_ref["logfc"].astype(float)
 yvalls_alt["fixed logfc"] = yvalls_alt["logfc"].astype(float)
 yvalls = pd.concat([yvalls_ref, yvalls_alt])
+
+#ADDED THIS
+#print(yvalls.shape)
+#yvalls = yvalls[yvalls["fixed logfc"].astype(float) == yvalls["logfc"].astype(float)].copy()
+#print(yvalls.shape)
 
 v.index = v["Position"]
 
@@ -132,8 +142,7 @@ yvalls["logfc"] = yvalls["logfc"].astype(float)
 yvalls["fixed logfc"] = yvalls["fixed logfc"].astype(float)
 yvalls["abs logfc"] = yvalls["abs logfc"].astype(float)
 
-#Set up the bins of 200000 sites with most/least CTS
-cutoffs_num = [200000, 400000, 600000]
+cutoffs_num = [200000, 400000, 600000, 8000000]
 
 for stratifier in ["Mean_CTS_Effect"]:
 
@@ -151,7 +160,7 @@ for stratifier in ["Mean_CTS_Effect"]:
     
     cutoffs = [cut1, cut2, cut3, cut4, cut5, cut6, cut7]
     print(cutoffs)
-    #Determine numbers to downsample to such that they are consistent across bins and equal to the lowest number in the lowest bin
+    #Determine numbers to downsample to
     v_sizes = []
     yvalls_sizes = []
     v_sizes_20 = []

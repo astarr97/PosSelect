@@ -25,13 +25,10 @@ plt.rcParams.update(
 )
 
 metric = " ".join(sys.argv[1].split("_"))
-dist = float(sys.argv[2])
-spec_sup = float(sys.argv[3])
-pc = float(sys.argv[4])
-maf_cut = float(sys.argv[5])
-rem_repeats = int(sys.argv[6])
-idents = sys.argv[7].split(",")
-cut = int(sys.argv[8])
+spec_sup = float(sys.argv[2])
+maf_cut = float(sys.argv[3])
+idents = sys.argv[4].split(",")
+cut = int(sys.argv[5])
 phylop_cut = -100
 
 
@@ -41,7 +38,7 @@ if metric == "PhyloP447":
 elif metric == "abs logfc":
     v, yvalls = read_noncoding_data_fast(path = "./", maf_cut = maf_cut, spec_sup = spec_sup)
     yvalls = add_unfold(yvalls)
-    dl_prefix = sys.argv[9]
+    dl_prefix = sys.argv[6]
     dl_path = "/oak/stanford/groups/hbfraser/astarr/ForMikeChromBPNet/Variants_Grouped/"
 
     #Trying it with the deep learning predictions
@@ -75,24 +72,6 @@ elif metric == "abs logfc":
     dl_fixed = dl_fixed[(dl_fixed["allele1_pred_counts"].astype(float) > cutoff_to_use) | (dl_fixed["allele2_pred_counts"].astype(float) > cutoff_to_use)]
     dl_poly = dl_poly[(dl_poly["allele1_pred_counts"].astype(float) > cutoff_to_use) | (dl_poly["allele2_pred_counts"].astype(float) > cutoff_to_use)]
 
-elif metric == "CNEP":
-    v, yvalls = read_noncoding_data_fast(path = "./", maf_cut = maf_cut, spec_sup = spec_sup)
-    yvalls = add_unfold(yvalls)
-    v.index = v["Position"]
-    v_cnep = pd.read_csv("HumChp_NC_Final_Rmdup_CREs_NoHLA_CNEP_CSS-CNEP.txt", sep = "\t").set_index("Position")
-    v = v.join(v_cnep)
-    v = v[~((v["CNEP"].isin(["."])) | (v["CSS-CNEP"].isin(["."])))]
-    v["CNEP"] = v["CNEP"].astype(float)
-    v["CSS-CNEP"] = v["CSS-CNEP"].astype(float)
-    v_cnep = 0
-    
-    yvalls.index = yvalls["Position"]
-    yvalls_cnep = pd.read_csv("HumPoly_NC_Final_CREs_NoHLA_CNEP_CSS-CNEP.txt", sep = "\t").set_index("Position")
-    yvalls = yvalls.join(yvalls_cnep)
-    yvalls = yvalls[~((yvalls["CNEP"].isin(["."])) | (yvalls["CSS-CNEP"].isin(["."])))]
-    yvalls["CNEP"] = yvalls["CNEP"].astype(float)
-    yvalls["CSS-CNEP"] = yvalls["CSS-CNEP"].astype(float)
-    yvalls_cnep = 0
 
 def prepare_tfbs(file, forp):
     if forp == "Fixed":

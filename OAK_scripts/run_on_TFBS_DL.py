@@ -47,7 +47,7 @@ print(v.shape[0], yvalls.shape[0])
 phylop_cut = -100
 
 try:
-    os.mkdir("TFBS_Results/" + dl_prefix)
+    os.mkdir("TFBS_Results_SYNGO/" + dl_prefix)
 except:
     pass
 
@@ -101,6 +101,10 @@ v.index = v["Position"]
 yvalls.index = yvalls["Position"]
 print(v.shape[0], yvalls.shape[0])
 
+syngo = list(pd.read_csv("SYNGO.txt", sep = "\t", header = None)[0])
+v = v[v["NearestGene"].isin(syngo)]
+yvalls = yvalls[yvalls["NearestGene"].isin(syngo)]
+
 #Get the TFBS files, make sure they are in order and accounted for
 fixed_files = os.listdir("TFBS_Fixed")
 fixed_files.sort()
@@ -141,14 +145,14 @@ out6 = []
 
 
 if jsd:
-    prefix1 = "TFBS_SpecSup0_PS_PhastCons-1_Unpaired_MAFCut0.25_FilterNewTEs_" + dl_prefix + "_JSD_All"
+    prefix1 = "TFBS_SpecSup0_PS_PhastCons-1_Unpaired_MAFCut0.25_FilterNewTEs_SYNGO_" + dl_prefix + "_JSD_All"
     prefix2 = prefix1.replace("JSD", "JSD_HrefDneCrefOnly")
     prefix3 = prefix1.replace("_All", "_Top20th")
     prefix4 = prefix2.replace("_All", "_Top20th")
     prefix5 = prefix1.replace("SpecSup0", "SpecSup250")
     prefix6 = prefix2.replace("SpecSup0", "SpecSup250")
 else:
-    prefix1 = "TFBS_SpecSup0_PS_PhastCons-1_Unpaired_MAFCut0.25_FilterNewTEs_" + dl_prefix + "_AbsLogfc_All"
+    prefix1 = "TFBS_SpecSup0_PS_PhastCons-1_Unpaired_MAFCut0.25_FilterNewTEs_SYNGO_" + dl_prefix + "_AbsLogfc_All"
     prefix2 = prefix1.replace("AbsLogfc", "AbsLogfc_HrefDneCrefOnly")
     prefix3 = prefix1.replace("_All", "_Top20th")
     prefix4 = prefix2.replace("_All", "_Top20th")
@@ -355,30 +359,30 @@ else:
 df = pd.DataFrame(out1)
 df.columns = ["TF_JASPAR_ID", "TF_Name", "Cutoff", "Statistic", "Median fixed " + metric_name, "Number fixed variants", "Median polymorphic " + metric_name, "Number polymorphic variants", "Fisher exact p-value", "MWU p-value", "Fisher exact p-value; alt greater", "MWU p-value; alt greater", "alpha", "Cutoff", "[[dc1, du1], [pc1, pu1]]", "[[dc2, du2], [pc2, pu2]]", "Proportion"]
 df.sort_values("Fisher exact p-value")
-df.to_csv("TFBS_Results/" + dl_prefix + "/" + prefix1 + ".txt", sep = "\t", index = False)
+df.to_csv("TFBS_Results_SYNGO/" + dl_prefix + "/" + prefix1 + ".txt", sep = "\t", index = False)
 
 df = pd.DataFrame(out2)
 df.columns = ["TF_JASPAR_ID", "TF_Name", "Cutoff", "Statistic", "Median fixed " + metric_name, "Number fixed variants", "Median polymorphic " + metric_name, "Number polymorphic variants", "Fisher exact p-value", "MWU p-value", "Fisher exact p-value; alt greater", "MWU p-value; alt greater", "alpha", "Cutoff", "[[dc1, du1], [pc1, pu1]]", "[[dc2, du2], [pc2, pu2]]", "Proportion"]
 df.sort_values("Fisher exact p-value")
-df.to_csv("TFBS_Results/" + dl_prefix + "/" + prefix2 + ".txt", sep = "\t", index = False)
+df.to_csv("TFBS_Results_SYNGO/" + dl_prefix + "/" + prefix2 + ".txt", sep = "\t", index = False)
 
 df = pd.DataFrame(out3)
 df.columns = ["TF_JASPAR_ID", "TF_Name", "Cutoff", "Statistic", "Median fixed " + metric_name, "Number fixed variants", "Median polymorphic " + metric_name, "Number polymorphic variants", "Fisher exact p-value", "MWU p-value", "Fisher exact p-value; alt greater", "MWU p-value; alt greater", "alpha", "Cutoff", "[[dc1, du1], [pc1, pu1]]", "[[dc2, du2], [pc2, pu2]]", "Proportion"]
 df.sort_values("Fisher exact p-value")
-df.to_csv("TFBS_Results/" + dl_prefix + "/" + prefix3 + ".txt", sep = "\t", index = False)
+df.to_csv("TFBS_Results_SYNGO/" + dl_prefix + "/" + prefix3 + ".txt", sep = "\t", index = False)
 
 df = pd.DataFrame(out4)
 df.columns = ["TF_JASPAR_ID", "TF_Name", "Cutoff", "Statistic", "Median fixed " + metric_name, "Number fixed variants", "Median polymorphic " + metric_name, "Number polymorphic variants", "Fisher exact p-value", "MWU p-value", "Fisher exact p-value; alt greater", "MWU p-value; alt greater", "alpha", "Cutoff", "[[dc1, du1], [pc1, pu1]]", "[[dc2, du2], [pc2, pu2]]", "Proportion"]
 df.sort_values("Fisher exact p-value")
-df.to_csv("TFBS_Results/" + dl_prefix + "/" + prefix4 + ".txt", sep = "\t", index = False)
+df.to_csv("TFBS_Results_SYNGO/" + dl_prefix + "/" + prefix4 + ".txt", sep = "\t", index = False)
 
 df = pd.DataFrame(out5)
 df.columns = ["TF_JASPAR_ID", "TF_Name", "Cutoff", "Statistic", "Median fixed " + metric_name, "Number fixed variants", "Median polymorphic " + metric_name, "Number polymorphic variants", "Fisher exact p-value", "MWU p-value", "Fisher exact p-value; alt greater", "MWU p-value; alt greater", "alpha", "Cutoff", "[[dc1, du1], [pc1, pu1]]", "[[dc2, du2], [pc2, pu2]]", "Proportion"]
 df.sort_values("Fisher exact p-value")
-df.to_csv("TFBS_Results/" + dl_prefix + "/" + prefix5 + ".txt", sep = "\t", index = False)
+df.to_csv("TFBS_Results_SYNGO/" + dl_prefix + "/" + prefix5 + ".txt", sep = "\t", index = False)
 
 df = pd.DataFrame(out6)
 df.columns = ["TF_JASPAR_ID", "TF_Name", "Cutoff", "Statistic", "Median fixed " + metric_name, "Number fixed variants", "Median polymorphic " + metric_name, "Number polymorphic variants", "Fisher exact p-value", "MWU p-value", "Fisher exact p-value; alt greater", "MWU p-value; alt greater", "alpha", "Cutoff", "[[dc1, du1], [pc1, pu1]]", "[[dc2, du2], [pc2, pu2]]", "Proportion"]
 df.sort_values("Fisher exact p-value")
-df.to_csv("TFBS_Results/" + dl_prefix + "/" + prefix6 + ".txt", sep = "\t", index = False)
+df.to_csv("TFBS_Results_SYNGO/" + dl_prefix + "/" + prefix6 + ".txt", sep = "\t", index = False)
 

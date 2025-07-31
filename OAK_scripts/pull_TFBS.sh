@@ -1,19 +1,30 @@
-#python get_tf_data.py abs_logfc 50000000000 0 -1 0.25 0 MA0052.4,MA0512.2,MA1643.1,MA0785.1,MA0507.2,MA1574.1,MA1575.1,MA1576.1,MA0745.2 400 AdultProximalTubule
-#python get_tf_data.py abs_logfc 50000000000 0 -1 0.25 0 MA0052.4,MA0512.2,MA1643.1,MA0785.1,MA0507.2,MA1574.1,MA1575.1,MA1576.1,MA0745.2 400 NeuralFemale
-#python get_tf_data.py abs_logfc 50000000000 0 -1 0.25 0 MA0052.4,MA0512.2,MA1643.1,MA0785.1,MA0507.2,MA1574.1,MA1575.1,MA1576.1,MA0745.2 400 FetalBrainNeurDRG_2
-#python get_tf_data.py abs_logfc 50000000000 0 -1 0.25 0 MA0052.4,MA0512.2,MA1643.1,MA0785.1,MA0507.2,MA1574.1,MA1575.1,MA1576.1,MA0745.2 400 ASCT
-#python get_tf_data.py abs_logfc 50000000000 0 -1 0.25 0 MA0052.4,MA0512.2,MA1643.1,MA0785.1,MA0507.2,MA1574.1,MA1575.1,MA1576.1,MA0745.2 400 LiangSteinProgenitor
-#python get_tf_data.py abs_logfc 50000000000 0 -1 0.25 0 MA0052.4,MA0512.2,MA1643.1,MA0785.1,MA0507.2,MA1574.1,MA1575.1,MA1576.1,MA0745.2 400 LiangSteinNeuron
-#python get_tf_data.py abs_logfc 50000000000 0 -1 0.25 0 MA0052.4,MA0512.2,MA1643.1,MA0785.1,MA0507.2,MA1574.1,MA1575.1,MA1576.1,MA0745.2 400 FetalChondrocytes
-#python get_tf_data.py abs_logfc 50000000000 0 -1 0.25 0 MA0052.4,MA0512.2,MA1643.1,MA0785.1,MA0507.2,MA1574.1,MA1575.1,MA1576.1,MA0745.2 400 ITL23
-#python get_tf_data.py abs_logfc 50000000000 0 -1 0.25 0 MA0052.4,MA0512.2,MA1643.1,MA0785.1,MA0507.2,MA1574.1,MA1575.1,MA1576.1,MA0745.2 400 KosoyRoussosControlMicroglia
+python get_tf_data.py abs_logfc 0 0.25 MA0052.4,MA0512.2,MA1643.1,MA0785.1,MA0507.2,MA1574.1,MA1575.1,MA1576.1,MA0745.2 400 AdultProximalTubule
+python get_tf_data.py abs_logfc 0 0.25 MA0052.4,MA0512.2,MA1643.1,MA0785.1,MA0507.2,MA1574.1,MA1575.1,MA1576.1,MA0745.2 400 NeuralFemale
+python get_tf_data.py abs_logfc 0 0.25 MA0052.4,MA0512.2,MA1643.1,MA0785.1,MA0507.2,MA1574.1,MA1575.1,MA1576.1,MA0745.2 400 FetalBrainNeurDRG_2
+python get_tf_data.py abs_logfc 0 0.25 MA0052.4,MA0512.2,MA1643.1,MA0785.1,MA0507.2,MA1574.1,MA1575.1,MA1576.1,MA0745.2 400 ASCT
+python get_tf_data.py abs_logfc 0 0.25 MA0052.4,MA0512.2,MA1643.1,MA0785.1,MA0507.2,MA1574.1,MA1575.1,MA1576.1,MA0745.2 400 LiangSteinProgenitor
+python get_tf_data.py abs_logfc 0 0.25 MA0052.4,MA0512.2,MA1643.1,MA0785.1,MA0507.2,MA1574.1,MA1575.1,MA1576.1,MA0745.2 400 LiangSteinNeuron
+python get_tf_data.py abs_logfc 0 0.25 MA0052.4,MA0512.2,MA1643.1,MA0785.1,MA0507.2,MA1574.1,MA1575.1,MA1576.1,MA0745.2 400 FetalChondrocytes
+python get_tf_data.py abs_logfc 0 0.25 MA0052.4,MA0512.2,MA1643.1,MA0785.1,MA0507.2,MA1574.1,MA1575.1,MA1576.1,MA0745.2 400 ITL23
+python get_tf_data.py abs_logfc 0 0.25 MA0052.4,MA0512.2,MA1643.1,MA0785.1,MA0507.2,MA1574.1,MA1575.1,MA1576.1,MA0745.2 400 KosoyRoussosControlMicroglia
 
-python get_tf_data.py abs_logfc 50000000000 0 -1 0.25 0 MA0135.1,MA0112.3,MA1531.1,MA1108.2,MA0596.1,MA1102.2 400 AdultProximalTubule
-python get_tf_data.py abs_logfc 50000000000 0 -1 0.25 0 MA0135.1,MA0112.3,MA1531.1,MA1108.2,MA0596.1,MA1102.2 400 NeuralFemale
-python get_tf_data.py abs_logfc 50000000000 0 -1 0.25 0 MA0135.1,MA0112.3,MA1531.1,MA1108.2,MA0596.1,MA1102.2 400 FetalBrainNeurSerotonergic
-python get_tf_data.py abs_logfc 50000000000 0 -1 0.25 0 MA0135.1,MA0112.3,MA1531.1,MA1108.2,MA0596.1,MA1102.2 400 ASCT
-python get_tf_data.py abs_logfc 50000000000 0 -1 0.25 0 MA0135.1,MA0112.3,MA1531.1,MA1108.2,MA0596.1,MA1102.2 400 LiangSteinProgenitor
-python get_tf_data.py abs_logfc 50000000000 0 -1 0.25 0 MA0135.1,MA0112.3,MA1531.1,MA1108.2,MA0596.1,MA1102.2 400 LiangSteinNeuron
-python get_tf_data.py abs_logfc 50000000000 0 -1 0.25 0 MA0135.1,MA0112.3,MA1531.1,MA1108.2,MA0596.1,MA1102.2 400 FetalChondrocytes
-python get_tf_data.py abs_logfc 50000000000 0 -1 0.25 0 MA0135.1,MA0112.3,MA1531.1,MA1108.2,MA0596.1,MA1102.2 400 ITL23
-python get_tf_data.py abs_logfc 50000000000 0 -1 0.25 0 MA0135.1,MA0112.3,MA1531.1,MA1108.2,MA0596.1,MA1102.2 400 KosoyRoussosControlMicroglia
+python get_tf_data.py abs_logfc 0 0.25 MA0135.1,MA0112.3,MA1531.1,MA1108.2,MA0596.1,MA1102.2 400 AdultProximalTubule
+python get_tf_data.py abs_logfc 0 0.25 MA0135.1,MA0112.3,MA1531.1,MA1108.2,MA0596.1,MA1102.2 400 NeuralFemale
+python get_tf_data.py abs_logfc 0 0.25 MA0135.1,MA0112.3,MA1531.1,MA1108.2,MA0596.1,MA1102.2 400 FetalBrainNeurSerotonergic
+python get_tf_data.py abs_logfc 0 0.25 MA0135.1,MA0112.3,MA1531.1,MA1108.2,MA0596.1,MA1102.2 400 ASCT
+python get_tf_data.py abs_logfc 0 0.25 MA0135.1,MA0112.3,MA1531.1,MA1108.2,MA0596.1,MA1102.2 400 LiangSteinProgenitor
+python get_tf_data.py abs_logfc 0 0.25 MA0135.1,MA0112.3,MA1531.1,MA1108.2,MA0596.1,MA1102.2 400 LiangSteinNeuron
+python get_tf_data.py abs_logfc 0 0.25 MA0135.1,MA0112.3,MA1531.1,MA1108.2,MA0596.1,MA1102.2 400 FetalChondrocytes
+python get_tf_data.py abs_logfc 0 0.25 MA0135.1,MA0112.3,MA1531.1,MA1108.2,MA0596.1,MA1102.2 400 ITL23
+python get_tf_data.py abs_logfc 0 0.25 MA0135.1,MA0112.3,MA1531.1,MA1108.2,MA0596.1,MA1102.2 400 KosoyRoussosControlMicroglia
+python get_tf_data.py abs_logfc 0 0.25 MA0135.1,MA0112.3,MA1531.1,MA1108.2,MA0596.1,MA1102.2 400 preGC_IIaFemale
+
+python get_tf_data.py abs_logfc 0 0.25 MA1587.1,MA1596.1,MA1723.1 400 AdultProximalTubule
+python get_tf_data.py abs_logfc 0 0.25 MA1587.1,MA1596.1,MA1723.1 400 LiangSteinNeuron
+python get_tf_data.py abs_logfc 0 0.25 MA1587.1,MA1596.1,MA1723.1 400 FetalChondrocytes
+python get_tf_data.py abs_logfc 0 0.25 MA1587.1,MA1596.1,MA1723.1 400 preGC_IIaFemale
+python get_tf_data.py abs_logfc 0 0.25 MA1587.1,MA1596.1,MA1723.1 400 LiangSteinProgenitor
+
+python get_tf_data1.py abs_logfc 0 0.25 MA1587.1,MA1596.1,MA1723.1 500 FetalChondrocytes
+
+python get_tf_data.py abs_logfc 0 0.25 MA0521.2 400 LiangSteinNeuron

@@ -91,23 +91,6 @@ elif metric == "abs logfc":
         dl_poly = dl_poly[(dl_poly["allele1_pred_counts"].astype(float) > cutoff_to_use) | (dl_poly["allele2_pred_counts"].astype(float) > cutoff_to_use)]
         v = v[v["Position"].isin(dl_fixed.index)]
         yvalls = yvalls[yvalls["Position"].isin(dl_poly.index)]
-elif metric == "CNEP":
-    v, yvalls = read_noncoding_data_fast(path = "./", maf_cut = maf_cut, spec_sup = spec_sup)
-    v.index = v["Position"]
-    v_cnep = pd.read_csv("HumChp_NC_Final_Rmdup_CREs_NoHLA_CNEP_CSS-CNEP.txt", sep = "\t").set_index("Position")
-    v = v.join(v_cnep)
-    v = v[~((v["CNEP"].isin(["."])) | (v["CSS-CNEP"].isin(["."])))]
-    v["CNEP"] = v["CNEP"].astype(float)
-    v["CSS-CNEP"] = v["CSS-CNEP"].astype(float)
-    v_cnep = 0
-    
-    yvalls.index = yvalls["Position"]
-    yvalls_cnep = pd.read_csv("HumPoly_NC_Final_CREs_NoHLA_CNEP_CSS-CNEP.txt", sep = "\t").set_index("Position")
-    yvalls = yvalls.join(yvalls_cnep)
-    yvalls = yvalls[~((yvalls["CNEP"].isin(["."])) | (yvalls["CSS-CNEP"].isin(["."])))]
-    yvalls["CNEP"] = yvalls["CNEP"].astype(float)
-    yvalls["CSS-CNEP"] = yvalls["CSS-CNEP"].astype(float)
-    yvalls_cnep = 0
 
 if rem_repeats:
     v, yvalls = remove_pseudos(v, yvalls)

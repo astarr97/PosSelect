@@ -74,65 +74,6 @@ elif metric == "abs logfc":
     dl_fixed = dl_fixed[(dl_fixed["allele1_pred_counts"].astype(float) > cutoff_to_use) | (dl_fixed["allele2_pred_counts"].astype(float) > cutoff_to_use)]
     dl_poly = dl_poly[(dl_poly["allele1_pred_counts"].astype(float) > cutoff_to_use) | (dl_poly["allele2_pred_counts"].astype(float) > cutoff_to_use)]
 
-elif metric == "jsd":
-    v, yvalls = read_noncoding_data_fast(path = "./", maf_cut = 0.25, spec_sup = 0)
-    dl_prefix = sys.argv[2]
-    dl_path = "/oak/stanford/groups/hbfraser/astarr/ForMikeChromBPNet/Variants_Grouped/"
-
-    #Trying it with the deep learning predictions
-    dl_fixed = pd.read_csv(dl_path + dl_prefix + "_HumanDerived.txt", sep = "\t")
-    dl_fixed = dl_fixed.set_index("variant_id")
-    dl_fixed = dl_fixed[["logfc", "allele1_pred_counts", "allele2_pred_counts", "jsd"]]
-    dl_fixed = dl_fixed[dl_fixed["logfc"] != "logfc"]
-    dl_fixed["jsd"] = dl_fixed["jsd"].astype(float)
-    dl_fixed["abs logfc"] = np.abs(dl_fixed["logfc"].astype(float))
-    v.index = v["Position"]
-    
-    dl_poly = pd.read_csv(dl_path + dl_prefix + "_Polymorphic.txt", sep = "\t")
-    dl_poly = dl_poly.set_index("variant_id")
-    dl_poly = dl_poly[["logfc", "allele1_pred_counts", "allele2_pred_counts", "jsd"]]
-    dl_poly = dl_poly[dl_poly["logfc"] != "logfc"]
-    dl_poly["jsd"] = dl_poly["jsd"].astype(float)
-    dl_poly["abs logfc"] = np.abs(dl_poly["logfc"].astype(float))
-    yvalls.index = yvalls["Position"]
-
-    fixed_to_cut = pd.DataFrame(np.max(dl_fixed[["allele1_pred_counts", "allele2_pred_counts"]].astype(float), axis = 1)).sort_values(0)
-    poly_to_cut = pd.DataFrame(np.max(dl_poly[["allele1_pred_counts", "allele2_pred_counts"]].astype(float), axis = 1)).sort_values(0)
-    
-    cutoff_fixed = list(fixed_to_cut[0])[8*fixed_to_cut.shape[0]//10]
-    cutoff_poly = list(poly_to_cut[0])[8*poly_to_cut.shape[0]//10]
-    print(cutoff_fixed, cutoff_poly)
-    cutoff_to_use = (cutoff_fixed + cutoff_poly)/2
-
-    v = v.join(dl_fixed).dropna()
-    yvalls = yvalls.join(dl_poly).dropna()
-    yvalls = yvalls.drop_duplicates("Position")
-    v = v.drop_duplicates("Position")
-    yvalls = add_unfold(yvalls)
-    dl_fixed = dl_fixed[(dl_fixed["allele1_pred_counts"].astype(float) > cutoff_to_use) | (dl_fixed["allele2_pred_counts"].astype(float) > cutoff_to_use)]
-    dl_poly = dl_poly[(dl_poly["allele1_pred_counts"].astype(float) > cutoff_to_use) | (dl_poly["allele2_pred_counts"].astype(float) > cutoff_to_use)]
-    
-elif metric == "BGS":
-    v, yvalls = read_noncoding_data_fast(path = "./", maf_cut = 0.25, spec_sup = 0)
-    yvalls = add_unfold(yvalls)
-    v.index = v["Position"]
-    yvalls.index = yvalls["Position"]
-    bgs_v = pd.read_csv("HumChp_NC_Final_Rmdup_CREs_NoHLA_Intersect_BGS.txt", sep = "\t", header = None).set_index(0)
-    bgs_v.columns = ["BGS"]
-    v = v.join(bgs_v).dropna()
-    v = v[~v["BGS"].isin(["."])]
-    v["BGS"] = v["BGS"].astype(float)
-    
-    bgs_vv = pd.read_csv("HumPoly_NC_Final_CREs_NoHLA_Intersect_BGS.txt", sep = "\t", header = None).set_index(0)
-    bgs_vv.columns = ["BGS"]
-    yvalls = yvalls.join(bgs_vv).dropna()
-    yvalls = yvalls[~yvalls["BGS"].isin(["."])]
-    yvalls["BGS"] = yvalls["BGS"].astype(float)
-    
-    v = v.drop_duplicates("Position")
-    yvalls = yvalls.drop_duplicates("Position")
-
-
 print(v.shape[0], yvalls.shape[0])
 
 v["Chrom"] = [x.split(":")[0] for x in v["Position"]]
@@ -246,48 +187,6 @@ def run_per_gene(v2, vv2):
 
                     min_ += window_size
 
-                #vk_shuf2 = vk.copy()
-                #vk_arr = np.array(vk_shuf2[metric])
-                #np.random.shuffle(vk_arr)
-                #vk_shuf2[metric] = vk_arr
-                #vvk_shuf2 = vvk.copy()
-                #vvk_arr = np.array(vvk_shuf2[metric])
-                #np.random.shuffle(vvk_arr)
-                #vvk_shuf2[metric] = vvk_arr
-                
-                #tot = list(vk["Pos"]) + list(vvk["Pos"])
-                #min_ = np.min(tot)
-                #max_ = np.max(tot)
-                
-                #while min_ < max_:
-                #    if min_ + window_size < max_:
-                #        v2kw = vk_shuf2[vk_shuf2["Pos"].isin(range(min_, min_ + window_size))].copy()
-                #        vv2kw = vvk_shuf2[vvk_shuf2["Pos"].isin(range(min_, min_ + window_size))].copy()
-                #        if len(v2kw.index) >= 20 and len(vv2kw.index) >= 10:
-                #            window = list(v2kw["Chrom"])[0] + ":" + str(min_) + "-" + str(min_ + window_size)
-                #    else:
-                #        v2kw = vk_shuf2[vk_shuf2["Pos"].isin(range(min_, min_ + window_size))].copy()
-                #        vv2kw = vvk_shuf2[vvk_shuf2["Pos"].isin(range(min_, min_ + window_size))].copy()
-                #        min_ = max_
-                #        if len(v2kw.index) >= 20 and len(vv2kw.index) >= 10:
-                #            window = list(v2kw["Chrom"])[0] + ":" + str(min_) + "-" + str(max_)
-                #
-                #    x2 = [np.float64(x) for x in list(v2kw[metric])]
-                #    yvals2 = [np.float64(j) for j in list(vv2kw[metric])]
-                #    yvals2.sort()
-                #    vvv = prepare_alpha(v2kw, vv2kw, stat = metric)
-                #    if len(x2) >= 20 and len(yvals2) >= 10:
-                #        for cuttt in [0.6, 0.7, 0.8]:
-                #            cutoff = yvals2[int(floor((len(yvals2)*cuttt)))]
-                #            alpha = compute_alpha_cutoff(vvv, dn_cut = 0.05, plot = False, cutoff = cutoff)
-                #    
-                #            table1 = alpha[2]
-                #            table2 = alpha[3]
-                #            out_w.append([gene, np.median(x2), len(x2), np.median(yvals2), len(yvals2), (fisher_exact(table1)[1] + fisher_exact(table2)[1])/2, mwu(x2, yvals2)[1], (fisher_exact(table1, alternative = "greater")[1] + fisher_exact(table2, alternative = "greater")[1])/2, mwu(x2, yvals2, alternative = "greater")[1], alpha[0], alpha[1], table1, table2, cuttt, window, "ShuffledPhyloP"])
-                #
-                #    min_ += window_size
-
-
     df = pd.DataFrame(out)
     df.columns = ["Term", "Median Fixed PhyloP", "Number Fixed Variants", "Median Polymorphic PhyloP", "Number Polymorphic Variants", "Fisher exact p-value", "MWU p-value", "Fisher exact p-value; alt greater", "MWU p-value; alt greater", "alpha", "Cutoff", "[[dc1, du1], [pc1, pu1]]", "[[dc2, du2], [pc2, pu2]]", "Proportion", "ShufOrReal"]
     
@@ -296,7 +195,7 @@ def run_per_gene(v2, vv2):
 
     return df, dfw
 
-if metric == "PhyloP447" or metric == "CNEP":
+if metric == "PhyloP447":
     df, dfw = run_per_gene(v, yvalls)
     df.to_csv("PerGene_Windows_TestBGS/PerGeneWindowsTestBGS_PerGene_NonCod_" + metric + "_MAFCut" + str(maf_cut) + "_WindowSize" + str(window_size) + "_SpecSup250_PhyloPCut" + str(phylop_cut) + "_PhastConsCut" + str(pc) + ".csv", index = False)
     dfw.to_csv("PerGene_Windows_TestBGS/PerGeneWindowsTestBGS_PerWindow_NonCod_" + metric + "_MAFCut" + str(maf_cut) + "_WindowSize" + str(window_size) + "_SpecSup250_PhyloPCut" + str(phylop_cut) + "_PhastConsCut" + str(pc) + ".csv", index = False)
@@ -309,7 +208,7 @@ if metric == "PhyloP447" or metric == "CNEP":
     df.to_csv("PerGene_Windows_TestBGS/PerGeneWindowsTestBGS_PerGene_NoPseudosNoRepeats_NonCod_" + metric + "_MAFCut" + str(maf_cut) + "_WindowSize" + str(window_size) + "_SpecSup250_PhyloPCut" + str(phylop_cut) + "_PhastConsCut" + str(pc) + ".csv", index = False)
     dfw.to_csv("PerGene_Windows_TestBGS/PerGeneWindowsTestBGS_PerWindow_NoPseudosNoRepeats_NonCod_" + metric + "_MAFCut" + str(maf_cut) + "_WindowSize" + str(window_size) + "_SpecSup250_PhyloPCut" + str(phylop_cut) + "_PhastConsCut" + str(pc) + ".csv", index = False)
 
-elif metric == "abs logfc" or metric == "jsd":
+elif metric == "abs logfc":
     try:
         os.mkdir("PerGene_Windows_TestBGS/" + dl_prefix)
     except:
@@ -334,49 +233,4 @@ elif metric == "abs logfc" or metric == "jsd":
     df.to_csv("PerGene_Windows_TestBGS/" + dl_prefix + "/PerGeneWindowsTestBGS_PerGene_NoPseudosNoRepeats_NonCod_Dl" + dl_prefix + "_" + metric.replace(" ", "_") + "_Top20th_MAFCut" + str(maf_cut) + "_WindowSize" + str(window_size) + "_SpecSup0_PhyloPCut" + str(phylop_cut) + "_PhastConsCut" + str(pc) + ".csv", index = False)
     dfw.to_csv("PerGene_Windows_TestBGS/" + dl_prefix + "/PerGeneWindowsTestBGS_PerWindow_NoPseudosNoRepeats_NonCod_Dl" + dl_prefix + "_" + metric.replace(" ", "_") + "_Top20th_MAFCut" + str(maf_cut) + "_WindowSize" + str(window_size) + "_SpecSup0_PhyloPCut" + str(phylop_cut) + "_PhastConsCut" + str(pc) + ".csv", index = False)
 
-    
-elif metric == "BGS":
-    df = run_per_gene(v, yvalls)
-    df.to_csv("PerGene_Windows_TestBGS/PerGeneWindowsTestBGS_NonCod_" + metric + "_MAFCut" + str(maf_cut) + "_WindowSize" + str(window_size) + "_SpecSup0_PhyloPCut" + str(phylop_cut) + "_PhastConsCut" + str(pc) + ".csv", index = False)
-    
-    pc = 0
-    df = run_per_gene(v[v["PhastCons447"].astype(float) > 0].copy(), yvalls[yvalls["PhastCons447"].astype(float) > 0].copy())
-    df.to_csv("PerGene_Windows_TestBGS/PerGeneWindowsTestBGS_NonCod_" + metric + "_MAFCut" + str(maf_cut) + "_WindowSize" + str(window_size) + "_SpecSup0_PhyloPCut" + str(phylop_cut) + "_PhastConsCut" + str(pc) + ".csv", index = False)
-    
-    v2, yvalls2 = remove_pseudos(v, yvalls)
-    v2, yvalls2 = remove_repeats(v, yvalls)
-    
-    pc = -1
-    df = run_per_gene(v2, yvalls2)
-    df.to_csv("PerGene_Windows_TestBGS/PerGeneWindowsTestBGS_NoPseudosNoRepeats_NonCod_" + metric + "_MAFCut" + str(maf_cut) + "_WindowSize" + str(window_size) + "_SpecSup0_PhyloPCut" + str(phylop_cut) + "_PhastConsCut" + str(pc) + ".csv", index = False)
-    
-    #pc = 0
-    #df = run_per_gene(v2[v2["PhastCons447"].astype(float) > 0].copy(), yvalls2[yvalls2["PhastCons447"].astype(float) > 0].copy())
-    #df.to_csv("PerGene_Windows_TestBGS/PerGeneWindowsTestBGS_NoPseudosNoRepeats_NonCod_" + metric + "_MAFCut" + str(maf_cut) + "_WindowSize" + str(window_size) + "_SpecSup0_PhyloPCut" + str(phylop_cut) + "_PhastConsCut" + str(pc) + ".csv", index = False)
-    
-    #v2 = 0
-    #yvalls2 = 0
-    
-    pc = -1
-    v = v[v["SpecSup447"].astype(int) > 250]
-    yvalls = yvalls[yvalls["SpecSup447"].astype(int) > 250]
-    df = run_per_gene(v, yvalls)
-    df.to_csv("PerGene_Windows_TestBGS/PerGeneWindowsTestBGS_NonCod_" + metric + "_MAFCut" + str(maf_cut) + "_WindowSize" + str(window_size) + "_SpecSup250_PhyloPCut" + str(phylop_cut) + "_PhastConsCut" + str(pc) + ".csv", index = False)
-    
-    #pc = 0
-    #df = run_per_gene(v[v["PhastCons447"].astype(float) > 0].copy(), yvalls[yvalls["PhastCons447"].astype(float) > 0].copy())
-    #df.to_csv("PerGene_Windows_TestBGS/PerGeneWindowsTestBGS_NonCod_" + metric + "_MAFCut" + str(maf_cut) + "_WindowSize" + str(window_size) + "_SpecSup250_PhyloPCut" + str(phylop_cut) + "_PhastConsCut" + str(pc) + ".csv", index = False)
-    
-    #v, yvalls = remove_pseudos(v, yvalls)
-    #v, yvalls = remove_repeats(v, yvalls)
-    
-    #pc = -1
-    #df = run_per_gene(v, yvalls)
-    #df.to_csv("PerGene_Windows_TestBGS/PerGeneWindowsTestBGS_NoPseudosNoRepeats_NonCod_" + metric + "_MAFCut" + str(maf_cut) + "_WindowSize" + str(window_size) + "_SpecSup250_PhyloPCut" + str(phylop_cut) + "_PhastConsCut" + str(pc) + ".csv", index = False)
-    
-    #pc = 0
-    #df = run_per_gene(v[v["PhastCons447"].astype(float) > 0].copy(), yvalls[yvalls["PhastCons447"].astype(float) > 0].copy())
-    #df.to_csv("PerGene_Windows_TestBGS/PerGeneWindowsTestBGS_NoPseudosNoRepeats_NonCod_" + metric + "_MAFCut" + str(maf_cut) + "_WindowSize" + str(window_size) + "_SpecSup250_PhyloPCut" + str(phylop_cut) + "_PhastConsCut" + str(pc) + ".csv", index = False)
-
-    
     

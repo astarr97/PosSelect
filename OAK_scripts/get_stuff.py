@@ -25,28 +25,20 @@ plt.rcParams["font.family"] = "Arial"
 plt.rcParams.update(
     {"text.usetex": False}
 )
+
+#python get_stuff.py abs_logfc 0 0.25 FetalBrainNeurGlioblast_CB_VZ
+
 metric = " ".join(sys.argv[1].split("_"))
 spec_sup = float(sys.argv[2])
-pc = float(sys.argv[3])
-maf_cut = float(sys.argv[4])
-rem_repeats = int(sys.argv[5])
-permute = int(sys.argv[6])
-window_size = int(sys.argv[7])
-out_file = sys.argv[-1]
+maf_cut = float(sys.argv[3])
 phylop_cut = -100
-
-def shuffle_fp(vvv):
-    shuffle = vvv.copy()
-    shuffled = list(shuffle["FixedOrPoly"].sample(frac = 1, replace = False))
-    shuffle["FixedOrPoly"] = shuffled
-    return shuffle
 
 if metric == "PhyloP447":
     v, yvalls = read_noncoding_data_fast(path = "./", maf_cut = maf_cut, spec_sup = spec_sup)
 
 elif metric == "abs logfc":
     v, yvalls = read_noncoding_data_fast(path = "./", maf_cut = maf_cut, spec_sup = spec_sup)
-    dl_prefix = sys.argv[8]
+    dl_prefix = sys.argv[4]
     dl_path = "/oak/stanford/groups/hbfraser/astarr/ForMikeChromBPNet/Variants_Grouped/"
 
     #Trying it with the deep learning predictions
@@ -79,29 +71,6 @@ elif metric == "abs logfc":
     
     dl_fixed = dl_fixed[(dl_fixed["allele1_pred_counts"].astype(float) > cutoff_to_use) | (dl_fixed["allele2_pred_counts"].astype(float) > cutoff_to_use)]
     dl_poly = dl_poly[(dl_poly["allele1_pred_counts"].astype(float) > cutoff_to_use) | (dl_poly["allele2_pred_counts"].astype(float) > cutoff_to_use)]
-
-elif metric == "CNEP":
-    v, yvalls = read_noncoding_data_fast(path = "./", maf_cut = maf_cut, spec_sup = spec_sup)
-    v.index = v["Position"]
-    v_cnep = pd.read_csv("HumChp_NC_Final_Rmdup_CREs_NoHLA_CNEP_CSS-CNEP.txt", sep = "\t").set_index("Position")
-    v = v.join(v_cnep)
-    v = v[~((v["CNEP"].isin(["."])) | (v["CSS-CNEP"].isin(["."])))]
-    v["CNEP"] = v["CNEP"].astype(float)
-    v["CSS-CNEP"] = v["CSS-CNEP"].astype(float)
-    v_cnep = 0
-    
-    yvalls.index = yvalls["Position"]
-    yvalls_cnep = pd.read_csv("HumPoly_NC_Final_CREs_NoHLA_CNEP_CSS-CNEP.txt", sep = "\t").set_index("Position")
-    yvalls = yvalls.join(yvalls_cnep)
-    yvalls = yvalls[~((yvalls["CNEP"].isin(["."])) | (yvalls["CSS-CNEP"].isin(["."])))]
-    yvalls["CNEP"] = yvalls["CNEP"].astype(float)
-    yvalls["CSS-CNEP"] = yvalls["CSS-CNEP"].astype(float)
-    yvalls_cnep = 0
-
-
-if rem_repeats:
-    v, yvalls = remove_pseudos(v, yvalls)
-    v, yvalls = remove_repeats(v, yvalls)
 
 v.to_csv("Fixed_" + dl_prefix + ".txt", sep = "\t")
 yvalls.to_csv("Poly_MAF0.25_" + dl_prefix + ".txt", sep = "\t")

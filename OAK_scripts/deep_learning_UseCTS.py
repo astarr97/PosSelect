@@ -43,17 +43,11 @@ elif to_strat == "PhyloP447":
     cutoff_name = "PhyloP_Cutoff"
 
 
-if dl_prefix not in os.listdir("UseCTS_Results"):
-    os.mkdir("UseCTS_Results/" + dl_prefix)
-out = open("UseCTS_Results/" + dl_prefix + "/UseCTS_FilterNewTEs_" + cts_metric + "_" + "Group" + str(group) + "_" + "SpecSup" + str(spec_sup) + "_" + to_strat.replace(" ", "_") + "_" + dl_prefix + ".txt", 'w')
+if dl_prefix not in os.listdir("UseCTS_Results_New"):
+    os.mkdir("UseCTS_Results_New/" + dl_prefix)
+out = open("UseCTS_Results_New/" + dl_prefix + "/UseCTS_FilterNewTEs_" + cts_metric + "_" + "Group" + str(group) + "_" + "SpecSup" + str(spec_sup) + "_" + to_strat.replace(" ", "_") + "_" + dl_prefix + ".txt", 'w')
 out.write(cutoff_name + "\tMetric\tCutNum\tMedian fixed metric\tNumber fixed variants\tMedian polymorphic metric\tNumber polymorphic variants\tFisher exact p-value\tMWU p-value\tFisher exact p-value; alt greater\tMWU p-value; alt greater\talpha\tCutoff\t[[dc1, du1], [pc1, pu1]]\t[[dc2, du2], [pc2, pu2]]\tProportion\tTop_20th\tIteration\tTypeOfSampling\n")
 
-
-def shuffle_fp(vvv):
-    shuffle = vvv.copy()
-    shuffled = list(shuffle["FixedOrPoly"].sample(frac = 1, replace = False))
-    shuffle["FixedOrPoly"] = shuffled
-    return shuffle
 
 v, yvalls = read_noncoding_data_fast(path = "./", maf_cut = 0.25, spec_sup = spec_sup)
 
@@ -85,6 +79,7 @@ yvalls = yvalls.join(dl_poly).dropna()
 yvalls = yvalls.drop_duplicates("Position")
 v = v.drop_duplicates("Position")
 
+#Read in correct cell type-specificity metric
 if tau:
     cts_metric = "Tau"
     if group == 1:
@@ -125,6 +120,7 @@ yvalls_ref["fixed logfc"] = -yvalls_ref["logfc"].astype(float)
 yvalls_alt["fixed logfc"] = yvalls_alt["logfc"].astype(float)
 yvalls = pd.concat([yvalls_ref, yvalls_alt])
 
+
 v.index = v["Position"]
 
 yvalls.index = yvalls["Position"]
@@ -134,24 +130,45 @@ print(v.shape[0], yvalls.shape[0])
 dl_fixed = dl_fixed[(dl_fixed["allele1_pred_counts"].astype(float) > cutoff_to_use) | (dl_fixed["allele2_pred_counts"].astype(float) > cutoff_to_use)]
 dl_poly = dl_poly[(dl_poly["allele1_pred_counts"].astype(float) > cutoff_to_use) | (dl_poly["allele2_pred_counts"].astype(float) > cutoff_to_use)]
 
-cutoffs_num = [50000, 250000, 500000, 1000000]
+cutoffs_num = [1000000]
+print(v.shape[0], yvalls.shape[0])
+
+v["logfc"] = v["logfc"].astype(float)
+v["abs logfc"] = v["abs logfc"].astype(float)
+
+yvalls["logfc"] = yvalls["logfc"].astype(float)
+yvalls["fixed logfc"] = yvalls["fixed logfc"].astype(float)
+yvalls["abs logfc"] = yvalls["abs logfc"].astype(float)
 
 #Restrict to only PhyloP447 > 0
 if to_strat == "PhyloP447":
     v = v[v[to_strat] >= 0]
     yvalls = yvalls[yvalls[to_strat] >= 0]
+    
+    #Restrict to top 1000000 effect sizes for PhyloP 
+    v_cut1 = v[["abs logfc"]]
+    vv_cut1 = yvalls[["abs logfc"]]
+    vvv_cut1 = pd.concat([v_cut1, vv_cut1])
+    lll1 = list(vvv_cut1.sort_values("abs logfc", ascending = False)["abs logfc"])
+    cut11 = lll1[cutoffs_num[1]]
+    v = v[v["abs logfc"] >= cut11]
+    yvalls = yvalls[yvalls["abs logfc"] >= cut11]
+
+print(v.shape[0], yvalls.shape[0])
+
+if to_strat == "PhyloP447":
+    cutoffs_num = [200000]
 
 v_cut = v[[to_strat]]
 vv_cut = yvalls[[to_strat]]
 vvv_cut = pd.concat([v_cut, vv_cut])
 lll = list(vvv_cut.sort_values(to_strat, ascending = False)[to_strat])
 cut1 = lll[cutoffs_num[0]]
-cut2 = lll[cutoffs_num[1]]
-cut3 = lll[cutoffs_num[2]]
-cut4 = lll[cutoffs_num[3]]
 
-cutoffs = [cut4, cut3, cut2, cut1]
+
+cutoffs = [cut1]
 print(cutoffs)
+
 #Determine numbers to downsample to
 v_sizes = []
 yvalls_sizes = []
@@ -162,7 +179,8 @@ for i in range(len(cutoffs) + 1):
         v_test = v[v[to_strat].astype(float) < cutoffs[i]]
         yvalls_test = yvalls[yvalls[to_strat].astype(float) < cutoffs[i]]
         cut = "< " + str(cutoffs[i])
-    elif i == 4:
+    #Switch back to 4 if uncomment above
+    elif i == 1:
         v_test = v[v[to_strat].astype(float) > cutoffs[i-1]]
         yvalls_test = yvalls[yvalls[to_strat].astype(float) > cutoffs[i-1]]
         cut = "> " + str(cutoffs[i-1])
@@ -187,7 +205,8 @@ for i in range(len(cutoffs) + 1):
         v_test = v[v[to_strat].astype(float) < cutoffs[i]]
         yvalls_test = yvalls[yvalls[to_strat].astype(float) < cutoffs[i]]
         cut = "< " + str(cutoffs[i])
-    elif i == 4:
+    #Switch back to 4 if uncomment above
+    elif i == 1:
         v_test = v[v[to_strat].astype(float) > cutoffs[i-1]]
         yvalls_test = yvalls[yvalls[to_strat].astype(float) > cutoffs[i-1]]
         cut = "> " + str(cutoffs[i-1])
@@ -200,15 +219,16 @@ for i in range(len(cutoffs) + 1):
     fixed_stat = vvv[vvv["FixedOrPoly"].isin(["Fixed"])][metric].astype(float)
     poly_stat = vvv[vvv["FixedOrPoly"].isin(["Polymorphic"])][metric].astype(float)
     vvv_all_stable_phylop = vvv.copy()
-    if i == 0 or i == 7:
+    
+    if i == 0:
+        cut_num = "Rest"
+    elif i == 1:
         cut_num = str(cutoffs_num[0])
-    elif i == 1 or i == 6:
-        cut_num = str(cutoffs_num[1])
-    elif i == 2 or i == 5:
-        cut_num = str(cutoffs_num[2])
     else:
         cut_num = "Rest"
-    for cuttt in [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]:
+        
+    #Run for cell type-specificity of effect
+    for cuttt in [0.3, 0.6, 0.8]:
         
         x = list(yvalls_test.sort_values(metric)[metric])
         cutoff = x[int(floor((len(x)*cuttt)))]
@@ -221,12 +241,13 @@ for i in range(len(cutoffs) + 1):
     v_test2 = v_test[v_test["Position"].isin(dl_fixed.index)]
     yvalls_test2 = yvalls_test[yvalls_test["Position"].isin(dl_poly.index)]
     
+    #Do the same thing with the top 20th percentile most accessible sites, not used
     vvv = prepare_alpha(v_test2.copy(), yvalls_test2.copy(), stat = "Mean_CTS_Effect")
     metric = "Mean_CTS_Effect"
     fixed_stat = vvv[vvv["FixedOrPoly"].isin(["Fixed"])][metric].astype(float)
     poly_stat = vvv[vvv["FixedOrPoly"].isin(["Polymorphic"])][metric].astype(float)
     vvv_top20th_stable_phylop = vvv.copy()
-    for cuttt in [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]:
+    for cuttt in [0.3, 0.6, 0.8]:
         
         x = list(yvalls_test2.sort_values(metric)[metric])
         cutoff = x[int(floor((len(x)*cuttt)))]
@@ -236,11 +257,43 @@ for i in range(len(cutoffs) + 1):
         out.write("\t".join([cut, "Mean_CTS_Effect", cut_num, str(np.median(fixed_stat)), str(len(list(fixed_stat))), str(np.median(poly_stat)), str(len(list(poly_stat))), str((fisher_exact(table1)[1] + fisher_exact(table2)[1])/2), str(mwu(fixed_stat, poly_stat)[1]), str((fisher_exact(table1, alternative = "greater")[1] + fisher_exact(table2, alternative = "greater")[1])/2), str(mwu(fixed_stat, poly_stat, alternative = "greater")[1]), str(alpha[0]), str(alpha[1]), str(table1), str(table2), str(cuttt), "Top20th", "Real", "Real"]) + "\n")
         #print("\t".join([cut, "Mean_CTS_Effect", cut_num, str(np.median(fixed_stat)), str(len(list(fixed_stat))), str(np.median(poly_stat)), str(len(list(poly_stat))), str((fisher_exact(table1)[1] + fisher_exact(table2)[1])/2), str(mwu(fixed_stat, poly_stat)[1]), str((fisher_exact(table1, alternative = "greater")[1] + fisher_exact(table2, alternative = "greater")[1])/2), str(mwu(fixed_stat, poly_stat, alternative = "greater")[1]), str(alpha[0]), str(alpha[1]), str(table1), str(table2), str(cuttt), "Top20th", "Real", "Real"]) + "\n")
 
+    #Repeat the above for abs logfc using the same cutoff
+    vvv = prepare_alpha(v_test.copy(), yvalls_test.copy(), stat = "abs logfc")
+    metric = "abs logfc"
+    fixed_stat = vvv[vvv["FixedOrPoly"].isin(["Fixed"])][metric].astype(float)
+    poly_stat = vvv[vvv["FixedOrPoly"].isin(["Polymorphic"])][metric].astype(float)
+    vvv_all_stable_phylop = vvv.copy()
+    for cuttt in [0.3, 0.6, 0.8]:
+        x = list(yvalls_test.sort_values(metric)[metric])
+        cutoff = x[int(floor((len(x)*cuttt)))]
+        alpha = compute_alpha_cutoff(vvv, plot = False, cutoff = cutoff)
+        table1 = alpha[2]
+        table2 = alpha[3]
+        out.write("\t".join([cut, "Absolute log fold-change", cut_num, str(np.median(fixed_stat)), str(len(list(fixed_stat))), str(np.median(poly_stat)), str(len(list(poly_stat))), str((fisher_exact(table1)[1] + fisher_exact(table2)[1])/2), str(mwu(fixed_stat, poly_stat)[1]), str((fisher_exact(table1, alternative = "greater")[1] + fisher_exact(table2, alternative = "greater")[1])/2), str(mwu(fixed_stat, poly_stat, alternative = "greater")[1]), str(alpha[0]), str(alpha[1]), str(table1), str(table2), str(cuttt), "All", "Real", "Real"]) + "\n")
+        print("\t".join([cut, "Absolute log fold-change", cut_num, str(np.median(fixed_stat)), str(len(list(fixed_stat))), str(np.median(poly_stat)), str(len(list(poly_stat))), str((fisher_exact(table1)[1] + fisher_exact(table2)[1])/2), str(mwu(fixed_stat, poly_stat)[1]), str((fisher_exact(table1, alternative = "greater")[1] + fisher_exact(table2, alternative = "greater")[1])/2), str(mwu(fixed_stat, poly_stat, alternative = "greater")[1]), str(alpha[0]), str(alpha[1]), str(table1), str(table2), str(cuttt), "All", "Real", "Real"]) + "\n")
 
+    v_test2 = v_test[v_test["Position"].isin(dl_fixed.index)]
+    yvalls_test2 = yvalls_test[yvalls_test["Position"].isin(dl_poly.index)]
+    
+    vvv = prepare_alpha(v_test2.copy(), yvalls_test2.copy(), stat = "abs logfc")
+    metric = "abs logfc"
+    fixed_stat = vvv[vvv["FixedOrPoly"].isin(["Fixed"])][metric].astype(float)
+    poly_stat = vvv[vvv["FixedOrPoly"].isin(["Polymorphic"])][metric].astype(float)
+    vvv_top20th_stable_phylop = vvv.copy()
+    for cuttt in [0.3, 0.6, 0.8]:
+        
+        x = list(yvalls_test2.sort_values(metric)[metric])
+        cutoff = x[int(floor((len(x)*cuttt)))]
+        alpha = compute_alpha_cutoff(vvv, plot = False, cutoff = cutoff)
+        table1 = alpha[2]
+        table2 = alpha[3]
+        out.write("\t".join([cut, "Absolute log fold-change", cut_num, str(np.median(fixed_stat)), str(len(list(fixed_stat))), str(np.median(poly_stat)), str(len(list(poly_stat))), str((fisher_exact(table1)[1] + fisher_exact(table2)[1])/2), str(mwu(fixed_stat, poly_stat)[1]), str((fisher_exact(table1, alternative = "greater")[1] + fisher_exact(table2, alternative = "greater")[1])/2), str(mwu(fixed_stat, poly_stat, alternative = "greater")[1]), str(alpha[0]), str(alpha[1]), str(table1), str(table2), str(cuttt), "Top20th", "Real", "Real"]) + "\n")
+        #print("\t".join([cut, "Mean_CTS_Effect", cut_num, str(np.median(fixed_stat)), str(len(list(fixed_stat))), str(np.median(poly_stat)), str(len(list(poly_stat))), str((fisher_exact(table1)[1] + fisher_exact(table2)[1])/2), str(mwu(fixed_stat, poly_stat)[1]), str((fisher_exact(table1, alternative = "greater")[1] + fisher_exact(table2, alternative = "greater")[1])/2), str(mwu(fixed_stat, poly_stat, alternative = "greater")[1]), str(alpha[0]), str(alpha[1]), str(table1), str(table2), str(cuttt), "Top20th", "Real", "Real"]) + "\n")
+    
+    #Repeat the above but bootstrapping 1000 times
     for iteration in range(1000):
         
         #Do bootstrapping to get our confidence interval
-        #Permute the fixed and polymorphic labels to get the correction factor
         np.random.seed(iteration)
         v_run = v_test.sample(n = v_size, replace = True)
         yvalls_run = yvalls_test.sample(n = yvalls_size, replace = True)
@@ -252,7 +305,7 @@ for i in range(len(cutoffs) + 1):
         metric = "Mean_CTS_Effect"
         fixed_stat = vvv[vvv["FixedOrPoly"].isin(["Fixed"])][metric].astype(float)
         poly_stat = vvv[vvv["FixedOrPoly"].isin(["Polymorphic"])][metric].astype(float)
-        for cuttt in [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]:
+        for cuttt in [0.3, 0.6, 0.8]:
             
             x = list(yvalls_run.sort_values(metric)[metric])
             cutoff = x[int(floor((len(x)*cuttt)))]
@@ -267,7 +320,7 @@ for i in range(len(cutoffs) + 1):
         metric = "Mean_CTS_Effect"
         fixed_stat = vvv[vvv["FixedOrPoly"].isin(["Fixed"])][metric].astype(float)
         poly_stat = vvv[vvv["FixedOrPoly"].isin(["Polymorphic"])][metric].astype(float)
-        for cuttt in [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]:
+        for cuttt in [0.3, 0.6, 0.8]:
             
             x = list(yvalls_run2.sort_values(metric)[metric])
             cutoff = x[int(floor((len(x)*cuttt)))]
@@ -276,4 +329,32 @@ for i in range(len(cutoffs) + 1):
             table2 = alpha[3]
             out.write("\t".join([cut, "Mean_CTS_Effect", cut_num, str(np.median(fixed_stat)), str(len(list(fixed_stat))), str(np.median(poly_stat)), str(len(list(poly_stat))), str((fisher_exact(table1)[1] + fisher_exact(table2)[1])/2), str(mwu(fixed_stat, poly_stat)[1]), str((fisher_exact(table1, alternative = "greater")[1] + fisher_exact(table2, alternative = "greater")[1])/2), str(mwu(fixed_stat, poly_stat, alternative = "greater")[1]), str(alpha[0]), str(alpha[1]), str(table1), str(table2), str(cuttt), "Top20th", str(iteration), "Bootstrap"]) + "\n")
         
+        vvv = prepare_alpha(v_run.copy(), yvalls_run.copy(), stat = "abs logfc")
+        metric = "abs logfc"
+        fixed_stat = vvv[vvv["FixedOrPoly"].isin(["Fixed"])][metric].astype(float)
+        poly_stat = vvv[vvv["FixedOrPoly"].isin(["Polymorphic"])][metric].astype(float)
+        for cuttt in [0.3, 0.6, 0.8]:
+            
+            x = list(yvalls_run.sort_values(metric)[metric])
+            cutoff = x[int(floor((len(x)*cuttt)))]
+            alpha = compute_alpha_cutoff(vvv, plot = False, cutoff = cutoff)
+            table1 = alpha[2]
+            table2 = alpha[3]
+            out.write("\t".join([cut, "Absolute log fold-change", cut_num, str(np.median(fixed_stat)), str(len(list(fixed_stat))), str(np.median(poly_stat)), str(len(list(poly_stat))), str((fisher_exact(table1)[1] + fisher_exact(table2)[1])/2), str(mwu(fixed_stat, poly_stat)[1]), str((fisher_exact(table1, alternative = "greater")[1] + fisher_exact(table2, alternative = "greater")[1])/2), str(mwu(fixed_stat, poly_stat, alternative = "greater")[1]), str(alpha[0]), str(alpha[1]), str(table1), str(table2), str(cuttt), "All", str(iteration), "Bootstrap"]) + "\n")
+            #print("\t".join([cut, "Absolute log fold-change", cut_num, str(np.median(fixed_stat)), str(len(list(fixed_stat))), str(np.median(poly_stat)), str(len(list(poly_stat))), str((fisher_exact(table1)[1] + fisher_exact(table2)[1])/2), str(mwu(fixed_stat, poly_stat)[1]), str((fisher_exact(table1, alternative = "greater")[1] + fisher_exact(table2, alternative = "greater")[1])/2), str(mwu(fixed_stat, poly_stat, alternative = "greater")[1]), str(alpha[0]), str(alpha[1]), str(table1), str(table2), str(cuttt), "All", str(iteration), "Bootstrap"]) + "\n")
+
+        #Repeat the above for only variants in the top 20% most accessible set
+        vvv = prepare_alpha(v_run2.copy(), yvalls_run2.copy(), stat = "abs logfc")
+        metric = "abs logfc"
+        fixed_stat = vvv[vvv["FixedOrPoly"].isin(["Fixed"])][metric].astype(float)
+        poly_stat = vvv[vvv["FixedOrPoly"].isin(["Polymorphic"])][metric].astype(float)
+        for cuttt in [0.3, 0.6, 0.8]:
+            
+            x = list(yvalls_run2.sort_values(metric)[metric])
+            cutoff = x[int(floor((len(x)*cuttt)))]
+            alpha = compute_alpha_cutoff(vvv, plot = False, cutoff = cutoff)
+            table1 = alpha[2]
+            table2 = alpha[3]
+            out.write("\t".join([cut, "Absolute log fold-change", cut_num, str(np.median(fixed_stat)), str(len(list(fixed_stat))), str(np.median(poly_stat)), str(len(list(poly_stat))), str((fisher_exact(table1)[1] + fisher_exact(table2)[1])/2), str(mwu(fixed_stat, poly_stat)[1]), str((fisher_exact(table1, alternative = "greater")[1] + fisher_exact(table2, alternative = "greater")[1])/2), str(mwu(fixed_stat, poly_stat, alternative = "greater")[1]), str(alpha[0]), str(alpha[1]), str(table1), str(table2), str(cuttt), "Top20th", str(iteration), "Bootstrap"]) + "\n")
+
 out.close()

@@ -180,14 +180,15 @@ def run_per_gene(v_test, yvalls_test):
             yvals2 = [np.float64(j) for j in list(vvk[metric])]
             yvals2.sort()
             vvv = prepare_alpha(vk, vvk, stat = metric)
-            for cuttt in [0.6, 0.7, 0.8, 0.9, 0.95]:
-                cutoff = yvals2[int(floor((len(yvals2)*cuttt)))]
-                alpha = compute_alpha_cutoff(vvv, dn_cut = 0.05, plot = False, cutoff = cutoff)
-
-                table1 = alpha[2]
-                table2 = alpha[3]
-                out.append([key, np.median(x2), len(x2), np.median(yvals2), len(yvals2), (fisher_exact(table1)[1] + fisher_exact(table2)[1])/2, mwu(x2, yvals2)[1], (fisher_exact(table1, alternative = "greater")[1] + fisher_exact(table2, alternative = "greater")[1])/2, mwu(x2, yvals2, alternative = "greater")[1], alpha[0], alpha[1], table1, table2, cuttt])
-                print([key, np.median(x2), len(x2), np.median(yvals2), len(yvals2), fisher_exact(table1)[1], mwu(x2, yvals2)[1], alpha[0], alpha[1], table1, cuttt])
+            if len(vk.index) > 100 and len(vvk.index) > 50:
+                for cuttt in [0.6, 0.7, 0.8, 0.9, 0.95]:
+                    cutoff = yvals2[int(floor((len(yvals2)*cuttt)))]
+                    alpha = compute_alpha_cutoff(vvv, dn_cut = 0.05, plot = False, cutoff = cutoff)
+    
+                    table1 = alpha[2]
+                    table2 = alpha[3]
+                    out.append([key, np.median(x2), len(x2), np.median(yvals2), len(yvals2), (fisher_exact(table1)[1] + fisher_exact(table2)[1])/2, mwu(x2, yvals2)[1], (fisher_exact(table1, alternative = "greater")[1] + fisher_exact(table2, alternative = "greater")[1])/2, mwu(x2, yvals2, alternative = "greater")[1], alpha[0], alpha[1], table1, table2, cuttt])
+                    #print([key, np.median(x2), len(x2), np.median(yvals2), len(yvals2), fisher_exact(table1)[1], mwu(x2, yvals2)[1], alpha[0], alpha[1], table1, cuttt])
             #shuffle_alphas = []
             #for i in range(1000):
                 #if i % 100 == 0:
